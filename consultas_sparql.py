@@ -15,7 +15,6 @@ depois. O arquivo data/copa2026.ttl nunca e modificado.
 """
 
 import util
-from base import COPA
 
 PREFIXOS = """
 PREFIX copa: <http://ufpb.br/sbc/copa2026#>

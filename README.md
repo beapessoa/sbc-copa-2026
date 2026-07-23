@@ -42,6 +42,24 @@ A saída completa de uma execução está gravada em [`saida_exemplo.txt`](saida
 
 > No Windows, troque a ativação por `.venv\Scripts\activate`.
 
+### Interface visual (extra, opcional)
+
+Além da execução no terminal, há uma interface em Streamlit usada para apresentar
+o projeto. Ela **não faz parte da entrega** e não altera nada: reaproveita os mesmos
+módulos de consulta e não toca no `.ttl`.
+
+```bash
+pip install -r requirements-app.txt
+```
+
+```bash
+streamlit run app.py
+```
+
+Tem seis seções: visão geral com as métricas da base, a taxonomia, uma demonstração
+interativa da inferência OWL (a mesma consulta com e sem o reasoner, lado a lado), as
+consultas da Parte 1, as da Parte 2 e um campo para escrever SPARQL livremente.
+
 ### Arquivos
 
 | Arquivo | Conteúdo |
@@ -52,6 +70,7 @@ A saída completa de uma execução está gravada em [`saida_exemplo.txt`](saida
 | [`consultas_triples.py`](consultas_triples.py) | Parte 1 — 7 consultas com `g.triples()` |
 | [`consultas_sparql.py`](consultas_sparql.py) | Parte 2 — 10 consultas SPARQL |
 | [`util.py`](util.py) | Formatação da saída no terminal |
+| [`app.py`](app.py) | Interface Streamlit — extra opcional, fora da entrega |
 
 ---
 

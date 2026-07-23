@@ -60,7 +60,7 @@ def main():
 
     antes, depois = base.aplicar_reasoner(g)
     print()
-    print(f"  DeductiveClosure(OWLRL_Semantics).expand(g)")
+    print("  DeductiveClosure(OWLRL_Semantics).expand(g)")
     print(f"  Triplas: {antes} -> {depois}  (+{depois - antes} inferidas)")
     print()
 
