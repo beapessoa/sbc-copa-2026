@@ -1,0 +1,3280 @@
+# Base de conhecimento da Copa do Mundo FIFA de 2026
+# Mini-Projeto 3 - Sistemas Baseados em Conhecimento
+#
+# Dados reais extraidos da Wikipedia (en.wikipedia.org) em julho de 2026:
+#   - 2026 FIFA World Cup            (sedes, estadios, capacidades)
+#   - 2026 FIFA World Cup squads     (elencos: numero, posicao, nascimento, clube)
+#   - 2026 FIFA World Cup round of 32 / knockout stage / final  (partidas)
+#   - 2026 FIFA World Cup Group A    (partidas da fase de grupos)
+
+@prefix copa: <http://ufpb.br/sbc/copa2026#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<http://ufpb.br/sbc/copa2026> a owl:Ontology ;
+    rdfs:label "Ontologia da Copa do Mundo FIFA de 2026" ;
+    rdfs:comment "Modela selecoes, grupos, confederacoes, cidades-sede, estadios, pessoas (jogadores, tecnicos e arbitros) e partidas da Copa do Mundo de 2026." .
+
+# ============================================================================
+# T-BOX 1/3 - HIERARQUIA DE CLASSES (rdfs:subClassOf)
+# ============================================================================
+
+# Raiz 1: PESSOA. Duas ramificacoes de profundidade 2 (Jogador -> posicao).
+
+# Raiz 1 - Pessoa
+
+copa:Pessoa a owl:Class ;
+    rdfs:label "Pessoa" ;
+    rdfs:comment "Qualquer ser humano que participa do torneio." .
+
+copa:Jogador a owl:Class ;
+    rdfs:label "Jogador" ;
+    rdfs:subClassOf copa:Pessoa ;
+    rdfs:comment "Atleta convocado por uma selecao." .
+
+copa:Goleiro a owl:Class ;
+    rdfs:label "Goleiro" ;
+    rdfs:subClassOf copa:Jogador ;
+    rdfs:comment "Jogador que atua na meta (GK)." .
+
+copa:Defensor a owl:Class ;
+    rdfs:label "Defensor" ;
+    rdfs:subClassOf copa:Jogador ;
+    rdfs:comment "Jogador de linha defensiva (DF)." .
+
+copa:MeioCampista a owl:Class ;
+    rdfs:label "MeioCampista" ;
+    rdfs:subClassOf copa:Jogador ;
+    rdfs:comment "Jogador de meio-campo (MF)." .
+
+copa:Atacante a owl:Class ;
+    rdfs:label "Atacante" ;
+    rdfs:subClassOf copa:Jogador ;
+    rdfs:comment "Jogador de ataque (FW)." .
+
+copa:Tecnico a owl:Class ;
+    rdfs:label "Tecnico" ;
+    rdfs:subClassOf copa:Pessoa ;
+    rdfs:comment "Treinador responsavel por uma selecao." .
+
+copa:Arbitro a owl:Class ;
+    rdfs:label "Arbitro" ;
+    rdfs:subClassOf copa:Pessoa ;
+    rdfs:comment "Arbitro principal designado para uma partida." .
+
+# Raiz 2: LOCAL. Cadeia Estadio -> CidadeSede -> Pais sustenta a transitividade
+# de copa:localizadoEm (declarada mais abaixo).
+
+# Raiz 2 - Local
+
+copa:Local a owl:Class ;
+    rdfs:label "Local" ;
+    rdfs:comment "Qualquer lugar geografico do torneio." .
+
+copa:Pais a owl:Class ;
+    rdfs:label "Pais" ;
+    rdfs:subClassOf copa:Local ;
+    rdfs:comment "Pais-sede da competicao." .
+
+copa:Cidade a owl:Class ;
+    rdfs:label "Cidade" ;
+    rdfs:subClassOf copa:Local ;
+    rdfs:comment "Municipio ou area metropolitana." .
+
+copa:CidadeSede a owl:Class ;
+    rdfs:label "CidadeSede" ;
+    rdfs:subClassOf copa:Cidade ;
+    rdfs:comment "Cidade escolhida pela FIFA para receber partidas." .
+
+copa:Estadio a owl:Class ;
+    rdfs:label "Estadio" ;
+    rdfs:subClassOf copa:Local ;
+    rdfs:comment "Praca esportiva onde as partidas sao disputadas." .
+
+# Raiz 3 - Partida
+
+copa:Partida a owl:Class ;
+    rdfs:label "Partida" ;
+    rdfs:comment "Jogo entre duas selecoes." .
+
+copa:PartidaFaseGrupos a owl:Class ;
+    rdfs:label "PartidaFaseGrupos" ;
+    rdfs:subClassOf copa:Partida ;
+    rdfs:comment "Partida da primeira fase, dentro de um grupo." .
+
+copa:PartidaMataMata a owl:Class ;
+    rdfs:label "PartidaMataMata" ;
+    rdfs:subClassOf copa:Partida ;
+    rdfs:comment "Partida eliminatoria: quem perde esta fora." .
+
+copa:Partida16Avos a owl:Class ;
+    rdfs:label "Partida16Avos" ;
+    rdfs:subClassOf copa:PartidaMataMata ;
+    rdfs:comment "Primeira rodada eliminatoria; com 48 selecoes o mata-mata comeca nos 16-avos." .
+
+copa:PartidaOitavas a owl:Class ;
+    rdfs:label "PartidaOitavas" ;
+    rdfs:subClassOf copa:PartidaMataMata ;
+    rdfs:comment "Oitavas de final." .
+
+copa:PartidaQuartas a owl:Class ;
+    rdfs:label "PartidaQuartas" ;
+    rdfs:subClassOf copa:PartidaMataMata ;
+    rdfs:comment "Quartas de final." .
+
+copa:PartidaSemifinal a owl:Class ;
+    rdfs:label "PartidaSemifinal" ;
+    rdfs:subClassOf copa:PartidaMataMata ;
+    rdfs:comment "Semifinal." .
+
+copa:PartidaTerceiroLugar a owl:Class ;
+    rdfs:label "PartidaTerceiroLugar" ;
+    rdfs:subClassOf copa:PartidaMataMata ;
+    rdfs:comment "Disputa do terceiro lugar." .
+
+copa:PartidaFinal a owl:Class ;
+    rdfs:label "PartidaFinal" ;
+    rdfs:subClassOf copa:PartidaMataMata ;
+    rdfs:comment "Decisao do titulo." .
+
+# Raiz 4 - Entidades organizacionais
+
+copa:Selecao a owl:Class ;
+    rdfs:label "Selecao" ;
+    rdfs:comment "Equipe nacional filiada a uma confederacao." .
+
+copa:Semifinalista a owl:Class ;
+    rdfs:label "Semifinalista" ;
+    rdfs:subClassOf copa:Selecao ;
+    rdfs:comment "Classe derivada: nao tem instancia no arquivo. E povoada em tempo de execucao pela regra INSERT ... WHERE da Parte 2, a partir de quem disputou uma copa:PartidaSemifinal." .
+
+copa:Grupo a owl:Class ;
+    rdfs:label "Grupo" ;
+    rdfs:comment "Chave da fase de grupos (A a L)." .
+
+copa:Confederacao a owl:Class ;
+    rdfs:label "Confederacao" ;
+    rdfs:comment "Confederacao continental filiada a FIFA." .
+
+
+# ============================================================================
+# T-BOX 2/3 - CONSTRUCOES OWL SOBRE CLASSES
+# ============================================================================
+
+# Sao 7 construcoes OWL no total, numeradas de OWL 1 a OWL 7 ao longo do
+# arquivo. As duas que incidem sobre CLASSES ficam aqui; as cinco que incidem
+# sobre PROPRIEDADES ficam na secao seguinte, junto da propriedade afetada.
+
+# OWL 1 - owl:equivalentClass
+# 'Mata-mata' e 'fase eliminatoria' sao o mesmo conceito com nomes diferentes na
+# imprensa e nos documentos da FIFA. Declarar a equivalencia permite que uma base
+# externa que use o outro termo seja integrada sem reescrever dado nenhum.
+copa:PartidaEliminatoria a owl:Class ;
+    rdfs:label "PartidaEliminatoria" ;
+    owl:equivalentClass copa:PartidaMataMata ;
+    rdfs:comment "Sinonimo de PartidaMataMata usado pela imprensa esportiva." .
+
+# OWL 2 - owl:disjointWith
+# Um mesmo individuo nao pode ocupar duas posicoes em campo, nem ser jogador e
+# arbitro da mesma competicao. A disjuncao torna esse erro de dado detectavel
+# pelo reasoner, coisa que RDFS sozinho nao consegue expressar.
+copa:Goleiro owl:disjointWith copa:Defensor .
+copa:Goleiro owl:disjointWith copa:MeioCampista .
+copa:Goleiro owl:disjointWith copa:Atacante .
+copa:Defensor owl:disjointWith copa:MeioCampista .
+copa:Defensor owl:disjointWith copa:Atacante .
+copa:MeioCampista owl:disjointWith copa:Atacante .
+copa:Jogador owl:disjointWith copa:Arbitro .
+copa:Jogador owl:disjointWith copa:Tecnico .
+copa:Tecnico owl:disjointWith copa:Arbitro .
+
+
+# ============================================================================
+# T-BOX 3/3 - PROPRIEDADES (12 de objeto + 14 de dados)
+# ============================================================================
+
+# Todas as propriedades declaram rdfs:domain e rdfs:range.
+# Lembrete de modelagem: domain/range em RDFS NAO validam dado, eles INFEREM o
+# tipo do sujeito/objeto. Por isso os rotulos legiveis usam rdfs:label, que nao
+# tem domain declarado - dois rdfs:domain na mesma propriedade significariam
+# intersecao de classes, nao uniao.
+
+
+# --- Propriedades de objeto (12) -------------------------------------------
+
+copa:jogaPor a owl:ObjectProperty ;
+    rdfs:label "jogaPor" ;
+    rdfs:domain copa:Jogador ;
+    rdfs:range copa:Selecao ;
+    rdfs:comment "Convocacao: liga o atleta a selecao que o convocou." .
+
+copa:temJogador a owl:ObjectProperty ;
+    rdfs:label "temJogador" ;
+    rdfs:domain copa:Selecao ;
+    rdfs:range copa:Jogador ;
+    rdfs:comment "Elenco da selecao. Nao e escrita no arquivo: e inferida de copa:jogaPor." .
+
+copa:treina a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:label "treina" ;
+    rdfs:domain copa:Tecnico ;
+    rdfs:range copa:Selecao ;
+    rdfs:comment "Funcional: um tecnico comanda no maximo uma selecao no torneio." .
+
+copa:pertenceAoGrupo a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:label "pertenceAoGrupo" ;
+    rdfs:domain copa:Selecao ;
+    rdfs:range copa:Grupo ;
+    rdfs:comment "Funcional: cada selecao foi sorteada em exatamente um grupo." .
+
+copa:filiadaA a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:label "filiadaA" ;
+    rdfs:domain copa:Selecao ;
+    rdfs:range copa:Confederacao ;
+    rdfs:comment "Funcional: cada selecao pertence a uma unica confederacao continental." .
+
+copa:mandante a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:label "mandante" ;
+    rdfs:domain copa:Partida ;
+    rdfs:range copa:Selecao ;
+    rdfs:comment "Selecao listada em primeiro lugar na tabela oficial da partida." .
+
+copa:visitante a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:label "visitante" ;
+    rdfs:domain copa:Partida ;
+    rdfs:range copa:Selecao ;
+    rdfs:comment "Selecao listada em segundo lugar na tabela oficial da partida." .
+
+copa:sediadaEm a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:label "sediadaEm" ;
+    rdfs:domain copa:Partida ;
+    rdfs:range copa:Estadio ;
+    rdfs:comment "Funcional: uma partida acontece em exatamente um estadio." .
+
+copa:vencedora a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:label "vencedora" ;
+    rdfs:domain copa:Partida ;
+    rdfs:range copa:Selecao ;
+    rdfs:comment "Funcional: quem avancou. Ausente nos empates da fase de grupos - por isso as consultas que a usam precisam de OPTIONAL." .
+
+copa:apitou a owl:ObjectProperty ;
+    rdfs:label "apitou" ;
+    rdfs:domain copa:Arbitro ;
+    rdfs:range copa:Partida ;
+    rdfs:comment "Arbitro principal designado para a partida." .
+
+# OWL 3 - owl:inverseOf
+# A convocacao e um fato unico visto de dois angulos. Escrevemos apenas o lado
+# jogador -> selecao (208 triplas); o reasoner deriva o elenco de cada selecao
+# sem que nenhuma tripla copa:temJogador exista no arquivo.
+copa:jogaPor owl:inverseOf copa:temJogador .
+
+# OWL 4 - owl:TransitiveProperty
+# Escrevemos so os elos curtos (estadio -> cidade, cidade -> pais). A pergunta
+# 'em que pais fica este estadio?' e respondida por inferencia, nunca por tripla
+# explicita. Sem transitividade seria preciso duplicar o vinculo em cada estadio.
+copa:localizadoEm a owl:ObjectProperty , owl:TransitiveProperty ;
+    rdfs:label "localizadoEm" ;
+    rdfs:domain copa:Local ;
+    rdfs:range copa:Local ;
+    rdfs:comment "Transitiva: Estadio -> CidadeSede -> Pais implica Estadio -> Pais." .
+
+# OWL 5 - owl:SymmetricProperty
+# 'Enfrentou' nao tem lado: se A enfrentou B, B enfrentou A. Declarar a simetria
+# evita gravar as duas direcoes. Esta propriedade NAO tem instancia no arquivo -
+# ela e populada em tempo de execucao pela consulta CONSTRUCT, que emite apenas
+# a direcao mandante -> visitante; a direcao inversa aparece so pelo reasoner.
+copa:enfrentou a owl:ObjectProperty , owl:SymmetricProperty ;
+    rdfs:label "enfrentou" ;
+    rdfs:domain copa:Selecao ;
+    rdfs:range copa:Selecao ;
+    rdfs:comment "Simetrica: duas selecoes que ja se cruzaram no torneio." .
+
+
+# --- Propriedades de dados (14) --------------------------------------------
+
+copa:numeroCamisa a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:label "numeroCamisa" ;
+    rdfs:domain copa:Jogador ;
+    rdfs:range xsd:integer ;
+    rdfs:comment "Funcional: um jogador usa um unico numero durante todo o torneio." .
+
+copa:dataNascimento a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:label "dataNascimento" ;
+    rdfs:domain copa:Pessoa ;
+    rdfs:range xsd:date ;
+    rdfs:comment "Funcional: uma pessoa nasce uma vez so." .
+
+copa:clubeAtual a owl:DatatypeProperty ;
+    rdfs:label "clubeAtual" ;
+    rdfs:domain copa:Jogador ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Clube em que o jogador atuava no momento da convocacao." .
+
+copa:jogosPelaSelecao a owl:DatatypeProperty ;
+    rdfs:label "jogosPelaSelecao" ;
+    rdfs:domain copa:Jogador ;
+    rdfs:range xsd:integer ;
+    rdfs:comment "Partidas oficiais pela selecao ate o inicio da Copa." .
+
+copa:golsPelaSelecao a owl:DatatypeProperty ;
+    rdfs:label "golsPelaSelecao" ;
+    rdfs:domain copa:Jogador ;
+    rdfs:range xsd:integer ;
+    rdfs:comment "Gols oficiais pela selecao ate o inicio da Copa." .
+
+copa:paisDeOrigem a owl:DatatypeProperty ;
+    rdfs:label "paisDeOrigem" ;
+    rdfs:domain copa:Arbitro ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Federacao nacional a que o arbitro e filiado." .
+
+copa:capacidade a owl:DatatypeProperty ;
+    rdfs:label "capacidade" ;
+    rdfs:domain copa:Estadio ;
+    rdfs:range xsd:integer ;
+    rdfs:comment "Publico maximo do estadio na configuracao usada pela FIFA." .
+
+copa:dataPartida a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:label "dataPartida" ;
+    rdfs:domain copa:Partida ;
+    rdfs:range xsd:date ;
+    rdfs:comment "Funcional: uma partida ocorre em uma unica data." .
+
+copa:golsMandante a owl:DatatypeProperty ;
+    rdfs:label "golsMandante" ;
+    rdfs:domain copa:Partida ;
+    rdfs:range xsd:integer ;
+    rdfs:comment "Gols do mandante no tempo normal somado a prorrogacao." .
+
+copa:golsVisitante a owl:DatatypeProperty ;
+    rdfs:label "golsVisitante" ;
+    rdfs:domain copa:Partida ;
+    rdfs:range xsd:integer ;
+    rdfs:comment "Gols do visitante no tempo normal somado a prorrogacao." .
+
+copa:publico a owl:DatatypeProperty ;
+    rdfs:label "publico" ;
+    rdfs:domain copa:Partida ;
+    rdfs:range xsd:integer ;
+    rdfs:comment "Publico presente, segundo o relatorio oficial da FIFA." .
+
+copa:letraGrupo a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:label "letraGrupo" ;
+    rdfs:domain copa:Grupo ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Letra que identifica a chave, de A a L." .
+
+copa:posicaoNoGrupo a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:label "posicaoNoGrupo" ;
+    rdfs:domain copa:Selecao ;
+    rdfs:range xsd:integer ;
+    rdfs:comment "Colocacao final da selecao na sua chave, de 1 a 4." .
+
+# OWL 6 e 7 - owl:FunctionalProperty + owl:InverseFunctionalProperty
+# O codigo FIFA de tres letras e uma chave global: cada selecao tem exatamente um
+# (funcional) e cada codigo pertence a exatamente uma selecao (inversamente
+# funcional). E o que permite a duas bases distintas reconhecerem que falam da
+# mesma selecao apenas por usarem 'BRA' - o reasoner deriva owl:sameAs.
+copa:codigoFIFA a owl:DatatypeProperty ,
+        owl:FunctionalProperty ,
+        owl:InverseFunctionalProperty ;
+    rdfs:label "codigoFIFA" ;
+    rdfs:domain copa:Selecao ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Codigo de tres letras da FIFA; identifica a selecao globalmente." .
+
+
+# ============================================================================
+# A-BOX 1/6 - GEOGRAFIA: 3 paises, 16 cidades-sede, 16 estadios
+# ============================================================================
+
+# Os elos sao curtos de proposito: estadio -> cidade e cidade -> pais.
+# A ligacao estadio -> pais nunca e escrita; vem da transitividade.
+
+copa:pais_CAN a copa:Pais ; rdfs:label "Canadá" .
+copa:pais_USA a copa:Pais ; rdfs:label "Estados Unidos" .
+copa:pais_MEX a copa:Pais ; rdfs:label "México" .
+
+copa:cidade_atlanta a copa:CidadeSede ; rdfs:label "Atlanta" ; copa:localizadoEm copa:pais_USA .
+copa:cidade_boston a copa:CidadeSede ; rdfs:label "Boston" ; copa:localizadoEm copa:pais_USA .
+copa:cidade_cidade_do_mexico a copa:CidadeSede ; rdfs:label "Cidade do México" ; copa:localizadoEm copa:pais_MEX .
+copa:cidade_dallas a copa:CidadeSede ; rdfs:label "Dallas" ; copa:localizadoEm copa:pais_USA .
+copa:cidade_filadelfia a copa:CidadeSede ; rdfs:label "Filadélfia" ; copa:localizadoEm copa:pais_USA .
+copa:cidade_guadalajara a copa:CidadeSede ; rdfs:label "Guadalajara" ; copa:localizadoEm copa:pais_MEX .
+copa:cidade_houston a copa:CidadeSede ; rdfs:label "Houston" ; copa:localizadoEm copa:pais_USA .
+copa:cidade_kansas_city a copa:CidadeSede ; rdfs:label "Kansas City" ; copa:localizadoEm copa:pais_USA .
+copa:cidade_los_angeles a copa:CidadeSede ; rdfs:label "Los Angeles" ; copa:localizadoEm copa:pais_USA .
+copa:cidade_miami a copa:CidadeSede ; rdfs:label "Miami" ; copa:localizadoEm copa:pais_USA .
+copa:cidade_monterrey a copa:CidadeSede ; rdfs:label "Monterrey" ; copa:localizadoEm copa:pais_MEX .
+copa:cidade_nova_york_nova_jersey a copa:CidadeSede ; rdfs:label "Nova York/Nova Jersey" ; copa:localizadoEm copa:pais_USA .
+copa:cidade_seattle a copa:CidadeSede ; rdfs:label "Seattle" ; copa:localizadoEm copa:pais_USA .
+copa:cidade_sao_francisco a copa:CidadeSede ; rdfs:label "São Francisco" ; copa:localizadoEm copa:pais_USA .
+copa:cidade_toronto a copa:CidadeSede ; rdfs:label "Toronto" ; copa:localizadoEm copa:pais_CAN .
+copa:cidade_vancouver a copa:CidadeSede ; rdfs:label "Vancouver" ; copa:localizadoEm copa:pais_CAN .
+
+copa:estadio_estadio_azteca a copa:Estadio ;
+    rdfs:label "Estadio Azteca" ;
+    copa:capacidade 80824 ;
+    copa:localizadoEm copa:cidade_cidade_do_mexico .
+
+copa:estadio_metlife_stadium a copa:Estadio ;
+    rdfs:label "MetLife Stadium" ;
+    copa:capacidade 80663 ;
+    copa:localizadoEm copa:cidade_nova_york_nova_jersey .
+
+copa:estadio_at_t_stadium a copa:Estadio ;
+    rdfs:label "AT&T Stadium" ;
+    copa:capacidade 70649 ;
+    copa:localizadoEm copa:cidade_dallas .
+
+copa:estadio_sofi_stadium a copa:Estadio ;
+    rdfs:label "SoFi Stadium" ;
+    copa:capacidade 70492 ;
+    copa:localizadoEm copa:cidade_los_angeles .
+
+copa:estadio_arrowhead_stadium a copa:Estadio ;
+    rdfs:label "Arrowhead Stadium" ;
+    copa:capacidade 69045 ;
+    copa:localizadoEm copa:cidade_kansas_city .
+
+copa:estadio_levi_s_stadium a copa:Estadio ;
+    rdfs:label "Levi's Stadium" ;
+    copa:capacidade 68827 ;
+    copa:localizadoEm copa:cidade_sao_francisco .
+
+copa:estadio_nrg_stadium a copa:Estadio ;
+    rdfs:label "NRG Stadium" ;
+    copa:capacidade 68777 ;
+    copa:localizadoEm copa:cidade_houston .
+
+copa:estadio_lincoln_financial_field a copa:Estadio ;
+    rdfs:label "Lincoln Financial Field" ;
+    copa:capacidade 68324 ;
+    copa:localizadoEm copa:cidade_filadelfia .
+
+copa:estadio_mercedes_benz_stadium a copa:Estadio ;
+    rdfs:label "Mercedes-Benz Stadium" ;
+    copa:capacidade 68239 ;
+    copa:localizadoEm copa:cidade_atlanta .
+
+copa:estadio_lumen_field a copa:Estadio ;
+    rdfs:label "Lumen Field" ;
+    copa:capacidade 66925 ;
+    copa:localizadoEm copa:cidade_seattle .
+
+copa:estadio_hard_rock_stadium a copa:Estadio ;
+    rdfs:label "Hard Rock Stadium" ;
+    copa:capacidade 64478 ;
+    copa:localizadoEm copa:cidade_miami .
+
+copa:estadio_gillette_stadium a copa:Estadio ;
+    rdfs:label "Gillette Stadium" ;
+    copa:capacidade 64146 ;
+    copa:localizadoEm copa:cidade_boston .
+
+copa:estadio_bc_place a copa:Estadio ;
+    rdfs:label "BC Place" ;
+    copa:capacidade 52497 ;
+    copa:localizadoEm copa:cidade_vancouver .
+
+copa:estadio_estadio_bbva a copa:Estadio ;
+    rdfs:label "Estadio BBVA" ;
+    copa:capacidade 51243 ;
+    copa:localizadoEm copa:cidade_monterrey .
+
+copa:estadio_estadio_akron a copa:Estadio ;
+    rdfs:label "Estadio Akron" ;
+    copa:capacidade 45664 ;
+    copa:localizadoEm copa:cidade_guadalajara .
+
+copa:estadio_bmo_field a copa:Estadio ;
+    rdfs:label "BMO Field" ;
+    copa:capacidade 43036 ;
+    copa:localizadoEm copa:cidade_toronto .
+
+
+# ============================================================================
+# A-BOX 2/6 - COMPETICAO: 6 confederacoes, 12 grupos, 48 selecoes
+# ============================================================================
+
+copa:conf_AFC a copa:Confederacao ; rdfs:label "AFC" ; rdfs:comment "Confederação Asiática de Futebol" .
+copa:conf_CAF a copa:Confederacao ; rdfs:label "CAF" ; rdfs:comment "Confederação Africana de Futebol" .
+copa:conf_CONCACAF a copa:Confederacao ; rdfs:label "CONCACAF" ; rdfs:comment "Confederação de Futebol da América do Norte, Central e Caribe" .
+copa:conf_CONMEBOL a copa:Confederacao ; rdfs:label "CONMEBOL" ; rdfs:comment "Confederação Sul-Americana de Futebol" .
+copa:conf_OFC a copa:Confederacao ; rdfs:label "OFC" ; rdfs:comment "Confederação de Futebol da Oceania" .
+copa:conf_UEFA a copa:Confederacao ; rdfs:label "UEFA" ; rdfs:comment "União das Associações Europeias de Futebol" .
+
+copa:grupo_A a copa:Grupo ; rdfs:label "Grupo A" ; copa:letraGrupo "A" .
+copa:grupo_B a copa:Grupo ; rdfs:label "Grupo B" ; copa:letraGrupo "B" .
+copa:grupo_C a copa:Grupo ; rdfs:label "Grupo C" ; copa:letraGrupo "C" .
+copa:grupo_D a copa:Grupo ; rdfs:label "Grupo D" ; copa:letraGrupo "D" .
+copa:grupo_E a copa:Grupo ; rdfs:label "Grupo E" ; copa:letraGrupo "E" .
+copa:grupo_F a copa:Grupo ; rdfs:label "Grupo F" ; copa:letraGrupo "F" .
+copa:grupo_G a copa:Grupo ; rdfs:label "Grupo G" ; copa:letraGrupo "G" .
+copa:grupo_H a copa:Grupo ; rdfs:label "Grupo H" ; copa:letraGrupo "H" .
+copa:grupo_I a copa:Grupo ; rdfs:label "Grupo I" ; copa:letraGrupo "I" .
+copa:grupo_J a copa:Grupo ; rdfs:label "Grupo J" ; copa:letraGrupo "J" .
+copa:grupo_K a copa:Grupo ; rdfs:label "Grupo K" ; copa:letraGrupo "K" .
+copa:grupo_L a copa:Grupo ; rdfs:label "Grupo L" ; copa:letraGrupo "L" .
+
+# Cada selecao traz codigo FIFA, grupo, colocacao final na chave e confederacao.
+
+copa:selecao_ALG a copa:Selecao ;
+    rdfs:label "Argélia" ;
+    copa:codigoFIFA "ALG" ;
+    copa:pertenceAoGrupo copa:grupo_J ;
+    copa:posicaoNoGrupo 3 ;
+    copa:filiadaA copa:conf_CAF .
+
+copa:selecao_ARG a copa:Selecao ;
+    rdfs:label "Argentina" ;
+    copa:codigoFIFA "ARG" ;
+    copa:pertenceAoGrupo copa:grupo_J ;
+    copa:posicaoNoGrupo 1 ;
+    copa:filiadaA copa:conf_CONMEBOL .
+
+copa:selecao_AUS a copa:Selecao ;
+    rdfs:label "Austrália" ;
+    copa:codigoFIFA "AUS" ;
+    copa:pertenceAoGrupo copa:grupo_D ;
+    copa:posicaoNoGrupo 2 ;
+    copa:filiadaA copa:conf_AFC .
+
+copa:selecao_AUT a copa:Selecao ;
+    rdfs:label "Áustria" ;
+    copa:codigoFIFA "AUT" ;
+    copa:pertenceAoGrupo copa:grupo_J ;
+    copa:posicaoNoGrupo 2 ;
+    copa:filiadaA copa:conf_UEFA .
+
+copa:selecao_BEL a copa:Selecao ;
+    rdfs:label "Bélgica" ;
+    copa:codigoFIFA "BEL" ;
+    copa:pertenceAoGrupo copa:grupo_G ;
+    copa:posicaoNoGrupo 1 ;
+    copa:filiadaA copa:conf_UEFA .
+
+copa:selecao_BIH a copa:Selecao ;
+    rdfs:label "Bósnia e Herzegovina" ;
+    copa:codigoFIFA "BIH" ;
+    copa:pertenceAoGrupo copa:grupo_B ;
+    copa:posicaoNoGrupo 3 ;
+    copa:filiadaA copa:conf_UEFA .
+
+copa:selecao_BRA a copa:Selecao ;
+    rdfs:label "Brasil" ;
+    copa:codigoFIFA "BRA" ;
+    copa:pertenceAoGrupo copa:grupo_C ;
+    copa:posicaoNoGrupo 1 ;
+    copa:filiadaA copa:conf_CONMEBOL .
+
+copa:selecao_CAN a copa:Selecao ;
+    rdfs:label "Canadá" ;
+    copa:codigoFIFA "CAN" ;
+    copa:pertenceAoGrupo copa:grupo_B ;
+    copa:posicaoNoGrupo 2 ;
+    copa:filiadaA copa:conf_CONCACAF .
+
+copa:selecao_CIV a copa:Selecao ;
+    rdfs:label "Costa do Marfim" ;
+    copa:codigoFIFA "CIV" ;
+    copa:pertenceAoGrupo copa:grupo_E ;
+    copa:posicaoNoGrupo 2 ;
+    copa:filiadaA copa:conf_CAF .
+
+copa:selecao_COD a copa:Selecao ;
+    rdfs:label "República Democrática do Congo" ;
+    copa:codigoFIFA "COD" ;
+    copa:pertenceAoGrupo copa:grupo_K ;
+    copa:posicaoNoGrupo 3 ;
+    copa:filiadaA copa:conf_CAF .
+
+copa:selecao_COL a copa:Selecao ;
+    rdfs:label "Colômbia" ;
+    copa:codigoFIFA "COL" ;
+    copa:pertenceAoGrupo copa:grupo_K ;
+    copa:posicaoNoGrupo 1 ;
+    copa:filiadaA copa:conf_CONMEBOL .
+
+copa:selecao_CPV a copa:Selecao ;
+    rdfs:label "Cabo Verde" ;
+    copa:codigoFIFA "CPV" ;
+    copa:pertenceAoGrupo copa:grupo_H ;
+    copa:posicaoNoGrupo 2 ;
+    copa:filiadaA copa:conf_CAF .
+
+copa:selecao_CRO a copa:Selecao ;
+    rdfs:label "Croácia" ;
+    copa:codigoFIFA "CRO" ;
+    copa:pertenceAoGrupo copa:grupo_L ;
+    copa:posicaoNoGrupo 2 ;
+    copa:filiadaA copa:conf_UEFA .
+
+copa:selecao_CUW a copa:Selecao ;
+    rdfs:label "Curaçao" ;
+    copa:codigoFIFA "CUW" ;
+    copa:pertenceAoGrupo copa:grupo_E ;
+    copa:posicaoNoGrupo 4 ;
+    copa:filiadaA copa:conf_CONCACAF .
+
+copa:selecao_CZE a copa:Selecao ;
+    rdfs:label "Chéquia" ;
+    copa:codigoFIFA "CZE" ;
+    copa:pertenceAoGrupo copa:grupo_A ;
+    copa:posicaoNoGrupo 4 ;
+    copa:filiadaA copa:conf_UEFA .
+
+copa:selecao_ECU a copa:Selecao ;
+    rdfs:label "Equador" ;
+    copa:codigoFIFA "ECU" ;
+    copa:pertenceAoGrupo copa:grupo_E ;
+    copa:posicaoNoGrupo 3 ;
+    copa:filiadaA copa:conf_CONMEBOL .
+
+copa:selecao_EGY a copa:Selecao ;
+    rdfs:label "Egito" ;
+    copa:codigoFIFA "EGY" ;
+    copa:pertenceAoGrupo copa:grupo_G ;
+    copa:posicaoNoGrupo 2 ;
+    copa:filiadaA copa:conf_CAF .
+
+copa:selecao_ENG a copa:Selecao ;
+    rdfs:label "Inglaterra" ;
+    copa:codigoFIFA "ENG" ;
+    copa:pertenceAoGrupo copa:grupo_L ;
+    copa:posicaoNoGrupo 1 ;
+    copa:filiadaA copa:conf_UEFA .
+
+copa:selecao_ESP a copa:Selecao ;
+    rdfs:label "Espanha" ;
+    copa:codigoFIFA "ESP" ;
+    copa:pertenceAoGrupo copa:grupo_H ;
+    copa:posicaoNoGrupo 1 ;
+    copa:filiadaA copa:conf_UEFA .
+
+copa:selecao_FRA a copa:Selecao ;
+    rdfs:label "França" ;
+    copa:codigoFIFA "FRA" ;
+    copa:pertenceAoGrupo copa:grupo_I ;
+    copa:posicaoNoGrupo 1 ;
+    copa:filiadaA copa:conf_UEFA .
+
+copa:selecao_GER a copa:Selecao ;
+    rdfs:label "Alemanha" ;
+    copa:codigoFIFA "GER" ;
+    copa:pertenceAoGrupo copa:grupo_E ;
+    copa:posicaoNoGrupo 1 ;
+    copa:filiadaA copa:conf_UEFA .
+
+copa:selecao_GHA a copa:Selecao ;
+    rdfs:label "Gana" ;
+    copa:codigoFIFA "GHA" ;
+    copa:pertenceAoGrupo copa:grupo_L ;
+    copa:posicaoNoGrupo 3 ;
+    copa:filiadaA copa:conf_CAF .
+
+copa:selecao_HAI a copa:Selecao ;
+    rdfs:label "Haiti" ;
+    copa:codigoFIFA "HAI" ;
+    copa:pertenceAoGrupo copa:grupo_C ;
+    copa:posicaoNoGrupo 4 ;
+    copa:filiadaA copa:conf_CONCACAF .
+
+copa:selecao_IRN a copa:Selecao ;
+    rdfs:label "Irã" ;
+    copa:codigoFIFA "IRN" ;
+    copa:pertenceAoGrupo copa:grupo_G ;
+    copa:posicaoNoGrupo 3 ;
+    copa:filiadaA copa:conf_AFC .
+
+copa:selecao_IRQ a copa:Selecao ;
+    rdfs:label "Iraque" ;
+    copa:codigoFIFA "IRQ" ;
+    copa:pertenceAoGrupo copa:grupo_I ;
+    copa:posicaoNoGrupo 4 ;
+    copa:filiadaA copa:conf_AFC .
+
+copa:selecao_JOR a copa:Selecao ;
+    rdfs:label "Jordânia" ;
+    copa:codigoFIFA "JOR" ;
+    copa:pertenceAoGrupo copa:grupo_J ;
+    copa:posicaoNoGrupo 4 ;
+    copa:filiadaA copa:conf_AFC .
+
+copa:selecao_JPN a copa:Selecao ;
+    rdfs:label "Japão" ;
+    copa:codigoFIFA "JPN" ;
+    copa:pertenceAoGrupo copa:grupo_F ;
+    copa:posicaoNoGrupo 2 ;
+    copa:filiadaA copa:conf_AFC .
+
+copa:selecao_KOR a copa:Selecao ;
+    rdfs:label "Coreia do Sul" ;
+    copa:codigoFIFA "KOR" ;
+    copa:pertenceAoGrupo copa:grupo_A ;
+    copa:posicaoNoGrupo 3 ;
+    copa:filiadaA copa:conf_AFC .
+
+copa:selecao_KSA a copa:Selecao ;
+    rdfs:label "Arábia Saudita" ;
+    copa:codigoFIFA "KSA" ;
+    copa:pertenceAoGrupo copa:grupo_H ;
+    copa:posicaoNoGrupo 4 ;
+    copa:filiadaA copa:conf_AFC .
+
+copa:selecao_MAR a copa:Selecao ;
+    rdfs:label "Marrocos" ;
+    copa:codigoFIFA "MAR" ;
+    copa:pertenceAoGrupo copa:grupo_C ;
+    copa:posicaoNoGrupo 2 ;
+    copa:filiadaA copa:conf_CAF .
+
+copa:selecao_MEX a copa:Selecao ;
+    rdfs:label "México" ;
+    copa:codigoFIFA "MEX" ;
+    copa:pertenceAoGrupo copa:grupo_A ;
+    copa:posicaoNoGrupo 1 ;
+    copa:filiadaA copa:conf_CONCACAF .
+
+copa:selecao_NED a copa:Selecao ;
+    rdfs:label "Países Baixos" ;
+    copa:codigoFIFA "NED" ;
+    copa:pertenceAoGrupo copa:grupo_F ;
+    copa:posicaoNoGrupo 1 ;
+    copa:filiadaA copa:conf_UEFA .
+
+copa:selecao_NOR a copa:Selecao ;
+    rdfs:label "Noruega" ;
+    copa:codigoFIFA "NOR" ;
+    copa:pertenceAoGrupo copa:grupo_I ;
+    copa:posicaoNoGrupo 2 ;
+    copa:filiadaA copa:conf_UEFA .
+
+copa:selecao_NZL a copa:Selecao ;
+    rdfs:label "Nova Zelândia" ;
+    copa:codigoFIFA "NZL" ;
+    copa:pertenceAoGrupo copa:grupo_G ;
+    copa:posicaoNoGrupo 4 ;
+    copa:filiadaA copa:conf_OFC .
+
+copa:selecao_PAN a copa:Selecao ;
+    rdfs:label "Panamá" ;
+    copa:codigoFIFA "PAN" ;
+    copa:pertenceAoGrupo copa:grupo_L ;
+    copa:posicaoNoGrupo 4 ;
+    copa:filiadaA copa:conf_CONCACAF .
+
+copa:selecao_PAR a copa:Selecao ;
+    rdfs:label "Paraguai" ;
+    copa:codigoFIFA "PAR" ;
+    copa:pertenceAoGrupo copa:grupo_D ;
+    copa:posicaoNoGrupo 3 ;
+    copa:filiadaA copa:conf_CONMEBOL .
+
+copa:selecao_POR a copa:Selecao ;
+    rdfs:label "Portugal" ;
+    copa:codigoFIFA "POR" ;
+    copa:pertenceAoGrupo copa:grupo_K ;
+    copa:posicaoNoGrupo 2 ;
+    copa:filiadaA copa:conf_UEFA .
+
+copa:selecao_QAT a copa:Selecao ;
+    rdfs:label "Catar" ;
+    copa:codigoFIFA "QAT" ;
+    copa:pertenceAoGrupo copa:grupo_B ;
+    copa:posicaoNoGrupo 4 ;
+    copa:filiadaA copa:conf_AFC .
+
+copa:selecao_RSA a copa:Selecao ;
+    rdfs:label "África do Sul" ;
+    copa:codigoFIFA "RSA" ;
+    copa:pertenceAoGrupo copa:grupo_A ;
+    copa:posicaoNoGrupo 2 ;
+    copa:filiadaA copa:conf_CAF .
+
+copa:selecao_SCO a copa:Selecao ;
+    rdfs:label "Escócia" ;
+    copa:codigoFIFA "SCO" ;
+    copa:pertenceAoGrupo copa:grupo_C ;
+    copa:posicaoNoGrupo 3 ;
+    copa:filiadaA copa:conf_UEFA .
+
+copa:selecao_SEN a copa:Selecao ;
+    rdfs:label "Senegal" ;
+    copa:codigoFIFA "SEN" ;
+    copa:pertenceAoGrupo copa:grupo_I ;
+    copa:posicaoNoGrupo 3 ;
+    copa:filiadaA copa:conf_CAF .
+
+copa:selecao_SUI a copa:Selecao ;
+    rdfs:label "Suíça" ;
+    copa:codigoFIFA "SUI" ;
+    copa:pertenceAoGrupo copa:grupo_B ;
+    copa:posicaoNoGrupo 1 ;
+    copa:filiadaA copa:conf_UEFA .
+
+copa:selecao_SWE a copa:Selecao ;
+    rdfs:label "Suécia" ;
+    copa:codigoFIFA "SWE" ;
+    copa:pertenceAoGrupo copa:grupo_F ;
+    copa:posicaoNoGrupo 3 ;
+    copa:filiadaA copa:conf_UEFA .
+
+copa:selecao_TUN a copa:Selecao ;
+    rdfs:label "Tunísia" ;
+    copa:codigoFIFA "TUN" ;
+    copa:pertenceAoGrupo copa:grupo_F ;
+    copa:posicaoNoGrupo 4 ;
+    copa:filiadaA copa:conf_CAF .
+
+copa:selecao_TUR a copa:Selecao ;
+    rdfs:label "Turquia" ;
+    copa:codigoFIFA "TUR" ;
+    copa:pertenceAoGrupo copa:grupo_D ;
+    copa:posicaoNoGrupo 4 ;
+    copa:filiadaA copa:conf_UEFA .
+
+copa:selecao_URU a copa:Selecao ;
+    rdfs:label "Uruguai" ;
+    copa:codigoFIFA "URU" ;
+    copa:pertenceAoGrupo copa:grupo_H ;
+    copa:posicaoNoGrupo 3 ;
+    copa:filiadaA copa:conf_CONMEBOL .
+
+copa:selecao_USA a copa:Selecao ;
+    rdfs:label "Estados Unidos" ;
+    copa:codigoFIFA "USA" ;
+    copa:pertenceAoGrupo copa:grupo_D ;
+    copa:posicaoNoGrupo 1 ;
+    copa:filiadaA copa:conf_CONCACAF .
+
+copa:selecao_UZB a copa:Selecao ;
+    rdfs:label "Uzbequistão" ;
+    copa:codigoFIFA "UZB" ;
+    copa:pertenceAoGrupo copa:grupo_K ;
+    copa:posicaoNoGrupo 4 ;
+    copa:filiadaA copa:conf_AFC .
+
+
+# ============================================================================
+# A-BOX 3/6 - TECNICOS (8)
+# ============================================================================
+
+copa:tecnico_lionel_scaloni a copa:Tecnico ; rdfs:label "Lionel Scaloni" ; copa:treina copa:selecao_ARG .
+copa:tecnico_carlo_ancelotti a copa:Tecnico ; rdfs:label "Carlo Ancelotti" ; copa:treina copa:selecao_BRA .
+copa:tecnico_thomas_tuchel a copa:Tecnico ; rdfs:label "Thomas Tuchel" ; copa:treina copa:selecao_ENG .
+copa:tecnico_luis_de_la_fuente a copa:Tecnico ; rdfs:label "Luis de la Fuente" ; copa:treina copa:selecao_ESP .
+copa:tecnico_didier_deschamps a copa:Tecnico ; rdfs:label "Didier Deschamps" ; copa:treina copa:selecao_FRA .
+copa:tecnico_mohamed_ouahbi a copa:Tecnico ; rdfs:label "Mohamed Ouahbi" ; copa:treina copa:selecao_MAR .
+copa:tecnico_javier_aguirre a copa:Tecnico ; rdfs:label "Javier Aguirre" ; copa:treina copa:selecao_MEX .
+copa:tecnico_stale_solbakken a copa:Tecnico ; rdfs:label "Ståle Solbakken" ; copa:treina copa:selecao_NOR .
+
+
+# ============================================================================
+# A-BOX 4/6 - ARBITROS (26)
+# ============================================================================
+
+copa:arbitro_adham_makhadmeh a copa:Arbitro ; rdfs:label "Adham Makhadmeh" ; copa:paisDeOrigem "Jordan" .
+copa:arbitro_alireza_faghani a copa:Arbitro ; rdfs:label "Alireza Faghani" ; copa:paisDeOrigem "Australia" .
+copa:arbitro_amin_omar a copa:Arbitro ; rdfs:label "Amin Omar" ; copa:paisDeOrigem "Egypt" .
+copa:arbitro_anthony_taylor a copa:Arbitro ; rdfs:label "Anthony Taylor" ; copa:paisDeOrigem "England" .
+copa:arbitro_clement_turpin a copa:Arbitro ; rdfs:label "Clément Turpin" ; copa:paisDeOrigem "France" .
+copa:arbitro_danny_makkelie a copa:Arbitro ; rdfs:label "Danny Makkelie" ; copa:paisDeOrigem "Netherlands" .
+copa:arbitro_drew_fischer a copa:Arbitro ; rdfs:label "Drew Fischer" ; copa:paisDeOrigem "Canada" .
+copa:arbitro_espen_eskas a copa:Arbitro ; rdfs:label "Espen Eskås" ; copa:paisDeOrigem "Norway" .
+copa:arbitro_facundo_tello a copa:Arbitro ; rdfs:label "Facundo Tello" ; copa:paisDeOrigem "Argentina" .
+copa:arbitro_francois_letexier a copa:Arbitro ; rdfs:label "François Letexier" ; copa:paisDeOrigem "France" .
+copa:arbitro_glenn_nyberg a copa:Arbitro ; rdfs:label "Glenn Nyberg" ; copa:paisDeOrigem "Sweden" .
+copa:arbitro_gustavo_tejera a copa:Arbitro ; rdfs:label "Gustavo Tejera" ; copa:paisDeOrigem "Uruguay" .
+copa:arbitro_ilgiz_tantashev a copa:Arbitro ; rdfs:label "Ilgiz Tantashev" ; copa:paisDeOrigem "Uzbekistan" .
+copa:arbitro_ismail_elfath a copa:Arbitro ; rdfs:label "Ismail Elfath" ; copa:paisDeOrigem "United States" .
+copa:arbitro_ivan_barton a copa:Arbitro ; rdfs:label "Iván Barton" ; copa:paisDeOrigem "El Salvador" .
+copa:arbitro_jalal_jayed a copa:Arbitro ; rdfs:label "Jalal Jayed" ; copa:paisDeOrigem "Morocco" .
+copa:arbitro_jesus_valenzuela a copa:Arbitro ; rdfs:label "Jesús Valenzuela" ; copa:paisDeOrigem "Venezuela" .
+copa:arbitro_joao_pinheiro a copa:Arbitro ; rdfs:label "João Pinheiro" ; copa:paisDeOrigem "Portugal" .
+copa:arbitro_maurizio_mariani a copa:Arbitro ; rdfs:label "Maurizio Mariani" ; copa:paisDeOrigem "Italy" .
+copa:arbitro_michael_oliver a copa:Arbitro ; rdfs:label "Michael Oliver" ; copa:paisDeOrigem "England" .
+copa:arbitro_raphael_claus a copa:Arbitro ; rdfs:label "Raphael Claus" ; copa:paisDeOrigem "Brazil" .
+copa:arbitro_said_martinez a copa:Arbitro ; rdfs:label "Saíd Martínez" ; copa:paisDeOrigem "Honduras" .
+copa:arbitro_slavko_vincic a copa:Arbitro ; rdfs:label "Slavko Vinčić" ; copa:paisDeOrigem "Slovenia" .
+copa:arbitro_tori_penso a copa:Arbitro ; rdfs:label "Tori Penso" ; copa:paisDeOrigem "United States" .
+copa:arbitro_wilton_sampaio a copa:Arbitro ; rdfs:label "Wilton Sampaio" ; copa:paisDeOrigem "Brazil" .
+copa:arbitro_yael_falcon a copa:Arbitro ; rdfs:label "Yael Falcón" ; copa:paisDeOrigem "Argentina" .
+
+
+# ============================================================================
+# A-BOX 5/6 - JOGADORES (208): 8 elencos oficiais completos
+# ============================================================================
+
+# A posicao declarada pela FIFA (GK/DF/MF/FW) vira a subclasse de copa:Jogador.
+# Note que NAO existe nenhuma tripla copa:temJogador aqui: o elenco de cada
+# selecao e derivado de copa:jogaPor pela inversa declarada na T-Box.
+
+# Argentina (ARG) - 26 convocados
+
+copa:jogador_juan_musso a copa:Goleiro ;
+    rdfs:label "Juan Musso" ;
+    copa:numeroCamisa 1 ;
+    copa:dataNascimento "1994-05-06"^^xsd:date ;
+    copa:clubeAtual "Atlético Madrid" ;
+    copa:jogosPelaSelecao 4 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_marcos_senesi a copa:Defensor ;
+    rdfs:label "Marcos Senesi" ;
+    copa:numeroCamisa 2 ;
+    copa:dataNascimento "1997-05-10"^^xsd:date ;
+    copa:clubeAtual "Bournemouth" ;
+    copa:jogosPelaSelecao 3 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_nicolas_tagliafico a copa:Defensor ;
+    rdfs:label "Nicolás Tagliafico" ;
+    copa:numeroCamisa 3 ;
+    copa:dataNascimento "1992-08-31"^^xsd:date ;
+    copa:clubeAtual "Lyon" ;
+    copa:jogosPelaSelecao 76 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_gonzalo_montiel a copa:Defensor ;
+    rdfs:label "Gonzalo Montiel" ;
+    copa:numeroCamisa 4 ;
+    copa:dataNascimento "1997-01-01"^^xsd:date ;
+    copa:clubeAtual "River Plate" ;
+    copa:jogosPelaSelecao 39 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_leandro_paredes a copa:MeioCampista ;
+    rdfs:label "Leandro Paredes" ;
+    copa:numeroCamisa 5 ;
+    copa:dataNascimento "1994-06-29"^^xsd:date ;
+    copa:clubeAtual "Boca Juniors" ;
+    copa:jogosPelaSelecao 77 ;
+    copa:golsPelaSelecao 5 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_lisandro_martinez a copa:Defensor ;
+    rdfs:label "Lisandro Martínez" ;
+    copa:numeroCamisa 6 ;
+    copa:dataNascimento "1998-01-18"^^xsd:date ;
+    copa:clubeAtual "Manchester United" ;
+    copa:jogosPelaSelecao 28 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_rodrigo_de_paul a copa:MeioCampista ;
+    rdfs:label "Rodrigo De Paul" ;
+    copa:numeroCamisa 7 ;
+    copa:dataNascimento "1994-05-24"^^xsd:date ;
+    copa:clubeAtual "Inter Miami CF" ;
+    copa:jogosPelaSelecao 87 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_valentin_barco a copa:MeioCampista ;
+    rdfs:label "Valentín Barco" ;
+    copa:numeroCamisa 8 ;
+    copa:dataNascimento "2004-07-23"^^xsd:date ;
+    copa:clubeAtual "Strasbourg" ;
+    copa:jogosPelaSelecao 4 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_julian_alvarez a copa:Atacante ;
+    rdfs:label "Julián Alvarez" ;
+    copa:numeroCamisa 9 ;
+    copa:dataNascimento "2000-01-31"^^xsd:date ;
+    copa:clubeAtual "Atlético Madrid" ;
+    copa:jogosPelaSelecao 51 ;
+    copa:golsPelaSelecao 14 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_lionel_messi a copa:Atacante ;
+    rdfs:label "Lionel Messi" ;
+    copa:numeroCamisa 10 ;
+    copa:dataNascimento "1987-06-24"^^xsd:date ;
+    copa:clubeAtual "Inter Miami CF" ;
+    copa:jogosPelaSelecao 199 ;
+    copa:golsPelaSelecao 117 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_giovani_lo_celso a copa:MeioCampista ;
+    rdfs:label "Giovani Lo Celso" ;
+    copa:numeroCamisa 11 ;
+    copa:dataNascimento "1996-04-09"^^xsd:date ;
+    copa:clubeAtual "Real Betis" ;
+    copa:jogosPelaSelecao 67 ;
+    copa:golsPelaSelecao 4 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_geronimo_rulli a copa:Goleiro ;
+    rdfs:label "Gerónimo Rulli" ;
+    copa:numeroCamisa 12 ;
+    copa:dataNascimento "1992-05-20"^^xsd:date ;
+    copa:clubeAtual "Marseille" ;
+    copa:jogosPelaSelecao 8 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_cristian_romero a copa:Defensor ;
+    rdfs:label "Cristian Romero" ;
+    copa:numeroCamisa 13 ;
+    copa:dataNascimento "1998-04-27"^^xsd:date ;
+    copa:clubeAtual "Tottenham Hotspur" ;
+    copa:jogosPelaSelecao 51 ;
+    copa:golsPelaSelecao 3 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_exequiel_palacios a copa:MeioCampista ;
+    rdfs:label "Exequiel Palacios" ;
+    copa:numeroCamisa 14 ;
+    copa:dataNascimento "1998-10-05"^^xsd:date ;
+    copa:clubeAtual "Bayer Leverkusen" ;
+    copa:jogosPelaSelecao 40 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_nicolas_gonzalez a copa:MeioCampista ;
+    rdfs:label "Nicolás González" ;
+    copa:numeroCamisa 15 ;
+    copa:dataNascimento "1998-04-06"^^xsd:date ;
+    copa:clubeAtual "Atlético Madrid" ;
+    copa:jogosPelaSelecao 51 ;
+    copa:golsPelaSelecao 6 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_thiago_almada a copa:Atacante ;
+    rdfs:label "Thiago Almada" ;
+    copa:numeroCamisa 16 ;
+    copa:dataNascimento "2001-04-26"^^xsd:date ;
+    copa:clubeAtual "Atlético Madrid" ;
+    copa:jogosPelaSelecao 16 ;
+    copa:golsPelaSelecao 5 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_giuliano_simeone a copa:Atacante ;
+    rdfs:label "Giuliano Simeone" ;
+    copa:numeroCamisa 17 ;
+    copa:dataNascimento "2002-12-18"^^xsd:date ;
+    copa:clubeAtual "Atlético Madrid" ;
+    copa:jogosPelaSelecao 13 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_nico_paz a copa:Atacante ;
+    rdfs:label "Nico Paz" ;
+    copa:numeroCamisa 18 ;
+    copa:dataNascimento "2004-09-08"^^xsd:date ;
+    copa:clubeAtual "Como" ;
+    copa:jogosPelaSelecao 9 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_nicolas_otamendi a copa:Defensor ;
+    rdfs:label "Nicolás Otamendi" ;
+    copa:numeroCamisa 19 ;
+    copa:dataNascimento "1988-02-12"^^xsd:date ;
+    copa:clubeAtual "Benfica" ;
+    copa:jogosPelaSelecao 132 ;
+    copa:golsPelaSelecao 8 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_alexis_mac_allister a copa:MeioCampista ;
+    rdfs:label "Alexis Mac Allister" ;
+    copa:numeroCamisa 20 ;
+    copa:dataNascimento "1998-12-24"^^xsd:date ;
+    copa:clubeAtual "Liverpool" ;
+    copa:jogosPelaSelecao 46 ;
+    copa:golsPelaSelecao 6 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_jose_manuel_lopez a copa:Atacante ;
+    rdfs:label "José Manuel López" ;
+    copa:numeroCamisa 21 ;
+    copa:dataNascimento "2000-12-06"^^xsd:date ;
+    copa:clubeAtual "Palmeiras" ;
+    copa:jogosPelaSelecao 5 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_lautaro_martinez a copa:Atacante ;
+    rdfs:label "Lautaro Martínez" ;
+    copa:numeroCamisa 22 ;
+    copa:dataNascimento "1997-08-22"^^xsd:date ;
+    copa:clubeAtual "Inter Milan" ;
+    copa:jogosPelaSelecao 77 ;
+    copa:golsPelaSelecao 37 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_emiliano_martinez a copa:Goleiro ;
+    rdfs:label "Emiliano Martínez" ;
+    copa:numeroCamisa 23 ;
+    copa:dataNascimento "1992-09-02"^^xsd:date ;
+    copa:clubeAtual "Aston Villa" ;
+    copa:jogosPelaSelecao 59 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_enzo_fernandez a copa:MeioCampista ;
+    rdfs:label "Enzo Fernández" ;
+    copa:numeroCamisa 24 ;
+    copa:dataNascimento "2001-01-17"^^xsd:date ;
+    copa:clubeAtual "Chelsea" ;
+    copa:jogosPelaSelecao 42 ;
+    copa:golsPelaSelecao 6 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_facundo_medina a copa:Defensor ;
+    rdfs:label "Facundo Medina" ;
+    copa:numeroCamisa 25 ;
+    copa:dataNascimento "1999-05-28"^^xsd:date ;
+    copa:clubeAtual "Marseille" ;
+    copa:jogosPelaSelecao 9 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ARG .
+
+copa:jogador_nahuel_molina a copa:Defensor ;
+    rdfs:label "Nahuel Molina" ;
+    copa:numeroCamisa 26 ;
+    copa:dataNascimento "1998-04-06"^^xsd:date ;
+    copa:clubeAtual "Atlético Madrid" ;
+    copa:jogosPelaSelecao 58 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_ARG .
+
+# Brasil (BRA) - 26 convocados
+
+copa:jogador_alisson a copa:Goleiro ;
+    rdfs:label "Alisson" ;
+    copa:numeroCamisa 1 ;
+    copa:dataNascimento "1992-10-02"^^xsd:date ;
+    copa:clubeAtual "Liverpool" ;
+    copa:jogosPelaSelecao 78 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_ederson_silva a copa:MeioCampista ;
+    rdfs:label "Éderson Silva" ;
+    copa:numeroCamisa 2 ;
+    copa:dataNascimento "1999-07-07"^^xsd:date ;
+    copa:clubeAtual "Atalanta" ;
+    copa:jogosPelaSelecao 3 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_gabriel_magalhaes a copa:Defensor ;
+    rdfs:label "Gabriel Magalhães" ;
+    copa:numeroCamisa 3 ;
+    copa:dataNascimento "1997-12-19"^^xsd:date ;
+    copa:clubeAtual "Arsenal" ;
+    copa:jogosPelaSelecao 17 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_marquinhos a copa:Defensor ;
+    rdfs:label "Marquinhos" ;
+    copa:numeroCamisa 4 ;
+    copa:dataNascimento "1994-05-14"^^xsd:date ;
+    copa:clubeAtual "Paris Saint-Germain" ;
+    copa:jogosPelaSelecao 105 ;
+    copa:golsPelaSelecao 7 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_casemiro a copa:MeioCampista ;
+    rdfs:label "Casemiro" ;
+    copa:numeroCamisa 5 ;
+    copa:dataNascimento "1992-02-23"^^xsd:date ;
+    copa:clubeAtual "Manchester United" ;
+    copa:jogosPelaSelecao 86 ;
+    copa:golsPelaSelecao 9 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_alex_sandro a copa:Defensor ;
+    rdfs:label "Alex Sandro" ;
+    copa:numeroCamisa 6 ;
+    copa:dataNascimento "1991-01-26"^^xsd:date ;
+    copa:clubeAtual "Flamengo" ;
+    copa:jogosPelaSelecao 45 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_vinicius_junior a copa:Atacante ;
+    rdfs:label "Vinícius Júnior" ;
+    copa:numeroCamisa 7 ;
+    copa:dataNascimento "2000-07-12"^^xsd:date ;
+    copa:clubeAtual "Real Madrid" ;
+    copa:jogosPelaSelecao 49 ;
+    copa:golsPelaSelecao 9 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_bruno_guimaraes a copa:MeioCampista ;
+    rdfs:label "Bruno Guimarães" ;
+    copa:numeroCamisa 8 ;
+    copa:dataNascimento "1997-11-16"^^xsd:date ;
+    copa:clubeAtual "Newcastle United" ;
+    copa:jogosPelaSelecao 43 ;
+    copa:golsPelaSelecao 3 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_matheus_cunha a copa:Atacante ;
+    rdfs:label "Matheus Cunha" ;
+    copa:numeroCamisa 9 ;
+    copa:dataNascimento "1999-05-27"^^xsd:date ;
+    copa:clubeAtual "Manchester United" ;
+    copa:jogosPelaSelecao 23 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_neymar a copa:Atacante ;
+    rdfs:label "Neymar" ;
+    copa:numeroCamisa 10 ;
+    copa:dataNascimento "1992-02-05"^^xsd:date ;
+    copa:clubeAtual "Santos" ;
+    copa:jogosPelaSelecao 128 ;
+    copa:golsPelaSelecao 79 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_raphinha a copa:Atacante ;
+    rdfs:label "Raphinha" ;
+    copa:numeroCamisa 11 ;
+    copa:dataNascimento "1996-12-14"^^xsd:date ;
+    copa:clubeAtual "Barcelona" ;
+    copa:jogosPelaSelecao 39 ;
+    copa:golsPelaSelecao 11 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_weverton a copa:Goleiro ;
+    rdfs:label "Weverton" ;
+    copa:numeroCamisa 12 ;
+    copa:dataNascimento "1987-12-13"^^xsd:date ;
+    copa:clubeAtual "Grêmio" ;
+    copa:jogosPelaSelecao 11 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_danilo_luiz a copa:Defensor ;
+    rdfs:label "Danilo Luiz" ;
+    copa:numeroCamisa 13 ;
+    copa:dataNascimento "1991-07-15"^^xsd:date ;
+    copa:clubeAtual "Flamengo" ;
+    copa:jogosPelaSelecao 70 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_bremer a copa:Defensor ;
+    rdfs:label "Bremer" ;
+    copa:numeroCamisa 14 ;
+    copa:dataNascimento "1997-03-18"^^xsd:date ;
+    copa:clubeAtual "Juventus" ;
+    copa:jogosPelaSelecao 8 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_leo_pereira a copa:Defensor ;
+    rdfs:label "Léo Pereira" ;
+    copa:numeroCamisa 15 ;
+    copa:dataNascimento "1996-01-31"^^xsd:date ;
+    copa:clubeAtual "Flamengo" ;
+    copa:jogosPelaSelecao 4 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_douglas_santos a copa:Defensor ;
+    rdfs:label "Douglas Santos" ;
+    copa:numeroCamisa 16 ;
+    copa:dataNascimento "1994-03-22"^^xsd:date ;
+    copa:clubeAtual "Zenit Saint Petersburg" ;
+    copa:jogosPelaSelecao 7 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_fabinho a copa:MeioCampista ;
+    rdfs:label "Fabinho" ;
+    copa:numeroCamisa 17 ;
+    copa:dataNascimento "1993-10-23"^^xsd:date ;
+    copa:clubeAtual "Al-Ittihad" ;
+    copa:jogosPelaSelecao 33 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_danilo_santos a copa:MeioCampista ;
+    rdfs:label "Danilo Santos" ;
+    copa:numeroCamisa 18 ;
+    copa:dataNascimento "2001-04-29"^^xsd:date ;
+    copa:clubeAtual "Botafogo" ;
+    copa:jogosPelaSelecao 4 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_endrick a copa:Atacante ;
+    rdfs:label "Endrick" ;
+    copa:numeroCamisa 19 ;
+    copa:dataNascimento "2006-07-21"^^xsd:date ;
+    copa:clubeAtual "Lyon" ;
+    copa:jogosPelaSelecao 17 ;
+    copa:golsPelaSelecao 4 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_lucas_paqueta a copa:MeioCampista ;
+    rdfs:label "Lucas Paquetá" ;
+    copa:numeroCamisa 20 ;
+    copa:dataNascimento "1997-08-27"^^xsd:date ;
+    copa:clubeAtual "Flamengo" ;
+    copa:jogosPelaSelecao 63 ;
+    copa:golsPelaSelecao 13 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_luiz_henrique a copa:Atacante ;
+    rdfs:label "Luiz Henrique" ;
+    copa:numeroCamisa 21 ;
+    copa:dataNascimento "2001-01-02"^^xsd:date ;
+    copa:clubeAtual "Zenit Saint Petersburg" ;
+    copa:jogosPelaSelecao 15 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_gabriel_martinelli a copa:Atacante ;
+    rdfs:label "Gabriel Martinelli" ;
+    copa:numeroCamisa 22 ;
+    copa:dataNascimento "2001-06-18"^^xsd:date ;
+    copa:clubeAtual "Arsenal" ;
+    copa:jogosPelaSelecao 23 ;
+    copa:golsPelaSelecao 4 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_ederson_moraes a copa:Goleiro ;
+    rdfs:label "Ederson Moraes" ;
+    copa:numeroCamisa 23 ;
+    copa:dataNascimento "1993-08-17"^^xsd:date ;
+    copa:clubeAtual "Fenerbahçe" ;
+    copa:jogosPelaSelecao 32 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_roger_ibanez a copa:Defensor ;
+    rdfs:label "Roger Ibañez" ;
+    copa:numeroCamisa 24 ;
+    copa:dataNascimento "1998-11-23"^^xsd:date ;
+    copa:clubeAtual "Al-Ahli" ;
+    copa:jogosPelaSelecao 7 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_igor_thiago a copa:Atacante ;
+    rdfs:label "Igor Thiago" ;
+    copa:numeroCamisa 25 ;
+    copa:dataNascimento "2001-06-26"^^xsd:date ;
+    copa:clubeAtual "Brentford" ;
+    copa:jogosPelaSelecao 4 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_BRA .
+
+copa:jogador_rayan a copa:Atacante ;
+    rdfs:label "Rayan" ;
+    copa:numeroCamisa 26 ;
+    copa:dataNascimento "2006-08-03"^^xsd:date ;
+    copa:clubeAtual "Bournemouth" ;
+    copa:jogosPelaSelecao 2 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_BRA .
+
+# Inglaterra (ENG) - 26 convocados
+
+copa:jogador_jordan_pickford a copa:Goleiro ;
+    rdfs:label "Jordan Pickford" ;
+    copa:numeroCamisa 1 ;
+    copa:dataNascimento "1994-03-07"^^xsd:date ;
+    copa:clubeAtual "Everton" ;
+    copa:jogosPelaSelecao 84 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_ezri_konsa a copa:Defensor ;
+    rdfs:label "Ezri Konsa" ;
+    copa:numeroCamisa 2 ;
+    copa:dataNascimento "1997-10-23"^^xsd:date ;
+    copa:clubeAtual "Aston Villa" ;
+    copa:jogosPelaSelecao 20 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_nico_o_reilly a copa:Defensor ;
+    rdfs:label "Nico O'Reilly" ;
+    copa:numeroCamisa 3 ;
+    copa:dataNascimento "2005-03-21"^^xsd:date ;
+    copa:clubeAtual "Manchester City" ;
+    copa:jogosPelaSelecao 5 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_declan_rice a copa:MeioCampista ;
+    rdfs:label "Declan Rice" ;
+    copa:numeroCamisa 4 ;
+    copa:dataNascimento "1999-01-14"^^xsd:date ;
+    copa:clubeAtual "Arsenal" ;
+    copa:jogosPelaSelecao 73 ;
+    copa:golsPelaSelecao 7 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_john_stones a copa:Defensor ;
+    rdfs:label "John Stones" ;
+    copa:numeroCamisa 5 ;
+    copa:dataNascimento "1994-05-28"^^xsd:date ;
+    copa:clubeAtual "Manchester City" ;
+    copa:jogosPelaSelecao 89 ;
+    copa:golsPelaSelecao 3 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_marc_guehi a copa:Defensor ;
+    rdfs:label "Marc Guéhi" ;
+    copa:numeroCamisa 6 ;
+    copa:dataNascimento "2000-07-13"^^xsd:date ;
+    copa:clubeAtual "Manchester City" ;
+    copa:jogosPelaSelecao 29 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_bukayo_saka a copa:Atacante ;
+    rdfs:label "Bukayo Saka" ;
+    copa:numeroCamisa 7 ;
+    copa:dataNascimento "2001-09-05"^^xsd:date ;
+    copa:clubeAtual "Arsenal" ;
+    copa:jogosPelaSelecao 49 ;
+    copa:golsPelaSelecao 14 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_elliot_anderson a copa:MeioCampista ;
+    rdfs:label "Elliot Anderson" ;
+    copa:numeroCamisa 8 ;
+    copa:dataNascimento "2002-11-06"^^xsd:date ;
+    copa:clubeAtual "Nottingham Forest" ;
+    copa:jogosPelaSelecao 9 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_harry_kane a copa:Atacante ;
+    rdfs:label "Harry Kane" ;
+    copa:numeroCamisa 9 ;
+    copa:dataNascimento "1993-07-28"^^xsd:date ;
+    copa:clubeAtual "Bayern Munich" ;
+    copa:jogosPelaSelecao 114 ;
+    copa:golsPelaSelecao 79 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_jude_bellingham a copa:MeioCampista ;
+    rdfs:label "Jude Bellingham" ;
+    copa:numeroCamisa 10 ;
+    copa:dataNascimento "2003-06-29"^^xsd:date ;
+    copa:clubeAtual "Real Madrid" ;
+    copa:jogosPelaSelecao 48 ;
+    copa:golsPelaSelecao 6 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_marcus_rashford a copa:Atacante ;
+    rdfs:label "Marcus Rashford" ;
+    copa:numeroCamisa 11 ;
+    copa:dataNascimento "1997-10-31"^^xsd:date ;
+    copa:clubeAtual "Barcelona" ;
+    copa:jogosPelaSelecao 72 ;
+    copa:golsPelaSelecao 18 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_trevoh_chalobah a copa:Defensor ;
+    rdfs:label "Trevoh Chalobah" ;
+    copa:numeroCamisa 12 ;
+    copa:dataNascimento "1999-07-05"^^xsd:date ;
+    copa:clubeAtual "Chelsea" ;
+    copa:jogosPelaSelecao 1 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_dean_henderson a copa:Goleiro ;
+    rdfs:label "Dean Henderson" ;
+    copa:numeroCamisa 13 ;
+    copa:dataNascimento "1997-03-12"^^xsd:date ;
+    copa:clubeAtual "Crystal Palace" ;
+    copa:jogosPelaSelecao 5 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_jordan_henderson a copa:MeioCampista ;
+    rdfs:label "Jordan Henderson" ;
+    copa:numeroCamisa 14 ;
+    copa:dataNascimento "1990-06-17"^^xsd:date ;
+    copa:clubeAtual "Brentford" ;
+    copa:jogosPelaSelecao 90 ;
+    copa:golsPelaSelecao 3 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_dan_burn a copa:Defensor ;
+    rdfs:label "Dan Burn" ;
+    copa:numeroCamisa 15 ;
+    copa:dataNascimento "1992-05-09"^^xsd:date ;
+    copa:clubeAtual "Newcastle United" ;
+    copa:jogosPelaSelecao 8 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_kobbie_mainoo a copa:MeioCampista ;
+    rdfs:label "Kobbie Mainoo" ;
+    copa:numeroCamisa 16 ;
+    copa:dataNascimento "2005-04-19"^^xsd:date ;
+    copa:clubeAtual "Manchester United" ;
+    copa:jogosPelaSelecao 14 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_morgan_rogers a copa:MeioCampista ;
+    rdfs:label "Morgan Rogers" ;
+    copa:numeroCamisa 17 ;
+    copa:dataNascimento "2002-07-26"^^xsd:date ;
+    copa:clubeAtual "Aston Villa" ;
+    copa:jogosPelaSelecao 15 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_anthony_gordon a copa:Atacante ;
+    rdfs:label "Anthony Gordon" ;
+    copa:numeroCamisa 18 ;
+    copa:dataNascimento "2001-02-24"^^xsd:date ;
+    copa:clubeAtual "Newcastle United" ;
+    copa:jogosPelaSelecao 19 ;
+    copa:golsPelaSelecao 3 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_ollie_watkins a copa:Atacante ;
+    rdfs:label "Ollie Watkins" ;
+    copa:numeroCamisa 19 ;
+    copa:dataNascimento "1995-12-30"^^xsd:date ;
+    copa:clubeAtual "Aston Villa" ;
+    copa:jogosPelaSelecao 22 ;
+    copa:golsPelaSelecao 7 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_noni_madueke a copa:Atacante ;
+    rdfs:label "Noni Madueke" ;
+    copa:numeroCamisa 20 ;
+    copa:dataNascimento "2002-03-10"^^xsd:date ;
+    copa:clubeAtual "Arsenal" ;
+    copa:jogosPelaSelecao 11 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_eberechi_eze a copa:MeioCampista ;
+    rdfs:label "Eberechi Eze" ;
+    copa:numeroCamisa 21 ;
+    copa:dataNascimento "1998-06-29"^^xsd:date ;
+    copa:clubeAtual "Arsenal" ;
+    copa:jogosPelaSelecao 17 ;
+    copa:golsPelaSelecao 3 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_ivan_toney a copa:Atacante ;
+    rdfs:label "Ivan Toney" ;
+    copa:numeroCamisa 22 ;
+    copa:dataNascimento "1996-03-16"^^xsd:date ;
+    copa:clubeAtual "Al-Ahli" ;
+    copa:jogosPelaSelecao 8 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_james_trafford a copa:Goleiro ;
+    rdfs:label "James Trafford" ;
+    copa:numeroCamisa 23 ;
+    copa:dataNascimento "2002-10-10"^^xsd:date ;
+    copa:clubeAtual "Manchester City" ;
+    copa:jogosPelaSelecao 2 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_reece_james a copa:Defensor ;
+    rdfs:label "Reece James" ;
+    copa:numeroCamisa 24 ;
+    copa:dataNascimento "1999-12-08"^^xsd:date ;
+    copa:clubeAtual "Chelsea" ;
+    copa:jogosPelaSelecao 24 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_djed_spence a copa:Defensor ;
+    rdfs:label "Djed Spence" ;
+    copa:numeroCamisa 25 ;
+    copa:dataNascimento "2000-08-09"^^xsd:date ;
+    copa:clubeAtual "Tottenham Hotspur" ;
+    copa:jogosPelaSelecao 6 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ENG .
+
+copa:jogador_jarell_quansah a copa:Defensor ;
+    rdfs:label "Jarell Quansah" ;
+    copa:numeroCamisa 26 ;
+    copa:dataNascimento "2003-01-29"^^xsd:date ;
+    copa:clubeAtual "Bayer Leverkusen" ;
+    copa:jogosPelaSelecao 3 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ENG .
+
+# Espanha (ESP) - 26 convocados
+
+copa:jogador_david_raya a copa:Goleiro ;
+    rdfs:label "David Raya" ;
+    copa:numeroCamisa 1 ;
+    copa:dataNascimento "1995-09-15"^^xsd:date ;
+    copa:clubeAtual "Arsenal" ;
+    copa:jogosPelaSelecao 13 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_marc_pubill a copa:Defensor ;
+    rdfs:label "Marc Pubill" ;
+    copa:numeroCamisa 2 ;
+    copa:dataNascimento "2003-06-20"^^xsd:date ;
+    copa:clubeAtual "Atlético Madrid" ;
+    copa:jogosPelaSelecao 2 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_alex_grimaldo a copa:Defensor ;
+    rdfs:label "Álex Grimaldo" ;
+    copa:numeroCamisa 3 ;
+    copa:dataNascimento "1995-09-20"^^xsd:date ;
+    copa:clubeAtual "Bayer Leverkusen" ;
+    copa:jogosPelaSelecao 14 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_eric_garcia a copa:Defensor ;
+    rdfs:label "Eric García" ;
+    copa:numeroCamisa 4 ;
+    copa:dataNascimento "2001-01-09"^^xsd:date ;
+    copa:clubeAtual "Barcelona" ;
+    copa:jogosPelaSelecao 21 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_marcos_llorente a copa:Defensor ;
+    rdfs:label "Marcos Llorente" ;
+    copa:numeroCamisa 5 ;
+    copa:dataNascimento "1995-01-30"^^xsd:date ;
+    copa:clubeAtual "Atlético Madrid" ;
+    copa:jogosPelaSelecao 24 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_mikel_merino a copa:MeioCampista ;
+    rdfs:label "Mikel Merino" ;
+    copa:numeroCamisa 6 ;
+    copa:dataNascimento "1996-06-22"^^xsd:date ;
+    copa:clubeAtual "Arsenal" ;
+    copa:jogosPelaSelecao 43 ;
+    copa:golsPelaSelecao 10 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_ferran_torres a copa:Atacante ;
+    rdfs:label "Ferran Torres" ;
+    copa:numeroCamisa 7 ;
+    copa:dataNascimento "2000-02-29"^^xsd:date ;
+    copa:clubeAtual "Barcelona" ;
+    copa:jogosPelaSelecao 57 ;
+    copa:golsPelaSelecao 24 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_fabian_ruiz a copa:MeioCampista ;
+    rdfs:label "Fabián Ruiz" ;
+    copa:numeroCamisa 8 ;
+    copa:dataNascimento "1996-04-03"^^xsd:date ;
+    copa:clubeAtual "Paris Saint-Germain" ;
+    copa:jogosPelaSelecao 42 ;
+    copa:golsPelaSelecao 6 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_gavi a copa:MeioCampista ;
+    rdfs:label "Gavi" ;
+    copa:numeroCamisa 9 ;
+    copa:dataNascimento "2004-08-05"^^xsd:date ;
+    copa:clubeAtual "Barcelona" ;
+    copa:jogosPelaSelecao 30 ;
+    copa:golsPelaSelecao 5 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_dani_olmo a copa:Atacante ;
+    rdfs:label "Dani Olmo" ;
+    copa:numeroCamisa 10 ;
+    copa:dataNascimento "1998-05-07"^^xsd:date ;
+    copa:clubeAtual "Barcelona" ;
+    copa:jogosPelaSelecao 50 ;
+    copa:golsPelaSelecao 12 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_yeremy_pino a copa:Atacante ;
+    rdfs:label "Yéremy Pino" ;
+    copa:numeroCamisa 11 ;
+    copa:dataNascimento "2002-10-20"^^xsd:date ;
+    copa:clubeAtual "Crystal Palace" ;
+    copa:jogosPelaSelecao 23 ;
+    copa:golsPelaSelecao 4 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_pedro_porro a copa:Defensor ;
+    rdfs:label "Pedro Porro" ;
+    copa:numeroCamisa 12 ;
+    copa:dataNascimento "1999-09-13"^^xsd:date ;
+    copa:clubeAtual "Tottenham Hotspur" ;
+    copa:jogosPelaSelecao 18 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_joan_garcia a copa:Goleiro ;
+    rdfs:label "Joan Garcia" ;
+    copa:numeroCamisa 13 ;
+    copa:dataNascimento "2001-05-04"^^xsd:date ;
+    copa:clubeAtual "Barcelona" ;
+    copa:jogosPelaSelecao 2 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_aymeric_laporte a copa:Defensor ;
+    rdfs:label "Aymeric Laporte" ;
+    copa:numeroCamisa 14 ;
+    copa:dataNascimento "1994-05-27"^^xsd:date ;
+    copa:clubeAtual "Athletic Bilbao" ;
+    copa:jogosPelaSelecao 46 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_alex_baena a copa:MeioCampista ;
+    rdfs:label "Álex Baena" ;
+    copa:numeroCamisa 15 ;
+    copa:dataNascimento "2001-07-20"^^xsd:date ;
+    copa:clubeAtual "Atlético Madrid" ;
+    copa:jogosPelaSelecao 17 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_rodri a copa:MeioCampista ;
+    rdfs:label "Rodri" ;
+    copa:numeroCamisa 16 ;
+    copa:dataNascimento "1996-06-22"^^xsd:date ;
+    copa:clubeAtual "Manchester City" ;
+    copa:jogosPelaSelecao 62 ;
+    copa:golsPelaSelecao 4 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_nico_williams a copa:Atacante ;
+    rdfs:label "Nico Williams" ;
+    copa:numeroCamisa 17 ;
+    copa:dataNascimento "2002-07-12"^^xsd:date ;
+    copa:clubeAtual "Athletic Bilbao" ;
+    copa:jogosPelaSelecao 30 ;
+    copa:golsPelaSelecao 6 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_martin_zubimendi a copa:MeioCampista ;
+    rdfs:label "Martín Zubimendi" ;
+    copa:numeroCamisa 18 ;
+    copa:dataNascimento "1999-02-02"^^xsd:date ;
+    copa:clubeAtual "Arsenal" ;
+    copa:jogosPelaSelecao 26 ;
+    copa:golsPelaSelecao 3 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_lamine_yamal a copa:Atacante ;
+    rdfs:label "Lamine Yamal" ;
+    copa:numeroCamisa 19 ;
+    copa:dataNascimento "2007-07-13"^^xsd:date ;
+    copa:clubeAtual "Barcelona" ;
+    copa:jogosPelaSelecao 25 ;
+    copa:golsPelaSelecao 6 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_pedri a copa:MeioCampista ;
+    rdfs:label "Pedri" ;
+    copa:numeroCamisa 20 ;
+    copa:dataNascimento "2002-11-25"^^xsd:date ;
+    copa:clubeAtual "Barcelona" ;
+    copa:jogosPelaSelecao 41 ;
+    copa:golsPelaSelecao 6 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_mikel_oyarzabal a copa:Atacante ;
+    rdfs:label "Mikel Oyarzabal" ;
+    copa:numeroCamisa 21 ;
+    copa:dataNascimento "1997-04-21"^^xsd:date ;
+    copa:clubeAtual "Real Sociedad" ;
+    copa:jogosPelaSelecao 53 ;
+    copa:golsPelaSelecao 25 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_pau_cubarsi a copa:Defensor ;
+    rdfs:label "Pau Cubarsí" ;
+    copa:numeroCamisa 22 ;
+    copa:dataNascimento "2007-01-22"^^xsd:date ;
+    copa:clubeAtual "Barcelona" ;
+    copa:jogosPelaSelecao 12 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_unai_simon a copa:Goleiro ;
+    rdfs:label "Unai Simón" ;
+    copa:numeroCamisa 23 ;
+    copa:dataNascimento "1997-06-11"^^xsd:date ;
+    copa:clubeAtual "Athletic Bilbao" ;
+    copa:jogosPelaSelecao 58 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_marc_cucurella a copa:Defensor ;
+    rdfs:label "Marc Cucurella" ;
+    copa:numeroCamisa 24 ;
+    copa:dataNascimento "1998-07-22"^^xsd:date ;
+    copa:clubeAtual "Chelsea" ;
+    copa:jogosPelaSelecao 24 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_victor_munoz a copa:Atacante ;
+    rdfs:label "Víctor Muñoz" ;
+    copa:numeroCamisa 25 ;
+    copa:dataNascimento "2003-07-13"^^xsd:date ;
+    copa:clubeAtual "Osasuna" ;
+    copa:jogosPelaSelecao 2 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_ESP .
+
+copa:jogador_borja_iglesias a copa:Atacante ;
+    rdfs:label "Borja Iglesias" ;
+    copa:numeroCamisa 26 ;
+    copa:dataNascimento "1993-01-17"^^xsd:date ;
+    copa:clubeAtual "Celta Vigo" ;
+    copa:jogosPelaSelecao 8 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_ESP .
+
+# França (FRA) - 26 convocados
+
+copa:jogador_brice_samba a copa:Goleiro ;
+    rdfs:label "Brice Samba" ;
+    copa:numeroCamisa 1 ;
+    copa:dataNascimento "1994-04-25"^^xsd:date ;
+    copa:clubeAtual "Rennes" ;
+    copa:jogosPelaSelecao 4 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_malo_gusto a copa:Defensor ;
+    rdfs:label "Malo Gusto" ;
+    copa:numeroCamisa 2 ;
+    copa:dataNascimento "2003-05-19"^^xsd:date ;
+    copa:clubeAtual "Chelsea" ;
+    copa:jogosPelaSelecao 11 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_lucas_digne a copa:Defensor ;
+    rdfs:label "Lucas Digne" ;
+    copa:numeroCamisa 3 ;
+    copa:dataNascimento "1993-07-20"^^xsd:date ;
+    copa:clubeAtual "Aston Villa" ;
+    copa:jogosPelaSelecao 58 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_dayot_upamecano a copa:Defensor ;
+    rdfs:label "Dayot Upamecano" ;
+    copa:numeroCamisa 4 ;
+    copa:dataNascimento "1998-10-27"^^xsd:date ;
+    copa:clubeAtual "Bayern Munich" ;
+    copa:jogosPelaSelecao 38 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_jules_kounde a copa:Defensor ;
+    rdfs:label "Jules Koundé" ;
+    copa:numeroCamisa 5 ;
+    copa:dataNascimento "1998-11-12"^^xsd:date ;
+    copa:clubeAtual "Barcelona" ;
+    copa:jogosPelaSelecao 48 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_manu_kone a copa:MeioCampista ;
+    rdfs:label "Manu Koné" ;
+    copa:numeroCamisa 6 ;
+    copa:dataNascimento "2001-05-17"^^xsd:date ;
+    copa:clubeAtual "Roma" ;
+    copa:jogosPelaSelecao 14 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_ousmane_dembele a copa:Atacante ;
+    rdfs:label "Ousmane Dembélé" ;
+    copa:numeroCamisa 7 ;
+    copa:dataNascimento "1997-05-15"^^xsd:date ;
+    copa:clubeAtual "Paris Saint-Germain" ;
+    copa:jogosPelaSelecao 59 ;
+    copa:golsPelaSelecao 7 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_aurelien_tchouameni a copa:MeioCampista ;
+    rdfs:label "Aurélien Tchouaméni" ;
+    copa:numeroCamisa 8 ;
+    copa:dataNascimento "2000-01-27"^^xsd:date ;
+    copa:clubeAtual "Real Madrid" ;
+    copa:jogosPelaSelecao 46 ;
+    copa:golsPelaSelecao 3 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_marcus_thuram a copa:Atacante ;
+    rdfs:label "Marcus Thuram" ;
+    copa:numeroCamisa 9 ;
+    copa:dataNascimento "1997-08-06"^^xsd:date ;
+    copa:clubeAtual "Inter Milan" ;
+    copa:jogosPelaSelecao 34 ;
+    copa:golsPelaSelecao 3 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_kylian_mbappe a copa:Atacante ;
+    rdfs:label "Kylian Mbappé" ;
+    copa:numeroCamisa 10 ;
+    copa:dataNascimento "1998-12-20"^^xsd:date ;
+    copa:clubeAtual "Real Madrid" ;
+    copa:jogosPelaSelecao 98 ;
+    copa:golsPelaSelecao 56 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_michael_olise a copa:Atacante ;
+    rdfs:label "Michael Olise" ;
+    copa:numeroCamisa 11 ;
+    copa:dataNascimento "2001-12-12"^^xsd:date ;
+    copa:clubeAtual "Bayern Munich" ;
+    copa:jogosPelaSelecao 17 ;
+    copa:golsPelaSelecao 7 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_bradley_barcola a copa:Atacante ;
+    rdfs:label "Bradley Barcola" ;
+    copa:numeroCamisa 12 ;
+    copa:dataNascimento "2002-09-02"^^xsd:date ;
+    copa:clubeAtual "Paris Saint-Germain" ;
+    copa:jogosPelaSelecao 20 ;
+    copa:golsPelaSelecao 3 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_n_golo_kante a copa:MeioCampista ;
+    rdfs:label "N'Golo Kanté" ;
+    copa:numeroCamisa 13 ;
+    copa:dataNascimento "1991-03-29"^^xsd:date ;
+    copa:clubeAtual "Fenerbahçe" ;
+    copa:jogosPelaSelecao 69 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_adrien_rabiot a copa:MeioCampista ;
+    rdfs:label "Adrien Rabiot" ;
+    copa:numeroCamisa 14 ;
+    copa:dataNascimento "1995-04-03"^^xsd:date ;
+    copa:clubeAtual "AC Milan" ;
+    copa:jogosPelaSelecao 59 ;
+    copa:golsPelaSelecao 7 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_ibrahima_konate a copa:Defensor ;
+    rdfs:label "Ibrahima Konaté" ;
+    copa:numeroCamisa 15 ;
+    copa:dataNascimento "1999-05-25"^^xsd:date ;
+    copa:clubeAtual "Liverpool" ;
+    copa:jogosPelaSelecao 28 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_mike_maignan a copa:Goleiro ;
+    rdfs:label "Mike Maignan" ;
+    copa:numeroCamisa 16 ;
+    copa:dataNascimento "1995-07-03"^^xsd:date ;
+    copa:clubeAtual "AC Milan" ;
+    copa:jogosPelaSelecao 40 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_william_saliba a copa:Defensor ;
+    rdfs:label "William Saliba" ;
+    copa:numeroCamisa 17 ;
+    copa:dataNascimento "2001-03-24"^^xsd:date ;
+    copa:clubeAtual "Arsenal" ;
+    copa:jogosPelaSelecao 32 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_warren_zaire_emery a copa:MeioCampista ;
+    rdfs:label "Warren Zaïre-Emery" ;
+    copa:numeroCamisa 18 ;
+    copa:dataNascimento "2006-03-08"^^xsd:date ;
+    copa:clubeAtual "Paris Saint-Germain" ;
+    copa:jogosPelaSelecao 11 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_theo_hernandez a copa:Defensor ;
+    rdfs:label "Théo Hernandez" ;
+    copa:numeroCamisa 19 ;
+    copa:dataNascimento "1997-10-06"^^xsd:date ;
+    copa:clubeAtual "Al-Hilal" ;
+    copa:jogosPelaSelecao 44 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_desire_doue a copa:Atacante ;
+    rdfs:label "Désiré Doué" ;
+    copa:numeroCamisa 20 ;
+    copa:dataNascimento "2005-06-03"^^xsd:date ;
+    copa:clubeAtual "Paris Saint-Germain" ;
+    copa:jogosPelaSelecao 7 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_lucas_hernandez a copa:Defensor ;
+    rdfs:label "Lucas Hernandez" ;
+    copa:numeroCamisa 21 ;
+    copa:dataNascimento "1996-02-14"^^xsd:date ;
+    copa:clubeAtual "Paris Saint-Germain" ;
+    copa:jogosPelaSelecao 42 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_jean_philippe_mateta a copa:Atacante ;
+    rdfs:label "Jean-Philippe Mateta" ;
+    copa:numeroCamisa 22 ;
+    copa:dataNascimento "1997-06-28"^^xsd:date ;
+    copa:clubeAtual "Crystal Palace" ;
+    copa:jogosPelaSelecao 4 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_robin_risser a copa:Goleiro ;
+    rdfs:label "Robin Risser" ;
+    copa:numeroCamisa 23 ;
+    copa:dataNascimento "2004-12-02"^^xsd:date ;
+    copa:clubeAtual "Lens" ;
+    copa:jogosPelaSelecao 0 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_rayan_cherki a copa:MeioCampista ;
+    rdfs:label "Rayan Cherki" ;
+    copa:numeroCamisa 24 ;
+    copa:dataNascimento "2003-08-17"^^xsd:date ;
+    copa:clubeAtual "Manchester City" ;
+    copa:jogosPelaSelecao 7 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_maghnes_akliouche a copa:MeioCampista ;
+    rdfs:label "Maghnes Akliouche" ;
+    copa:numeroCamisa 25 ;
+    copa:dataNascimento "2002-02-25"^^xsd:date ;
+    copa:clubeAtual "Monaco" ;
+    copa:jogosPelaSelecao 9 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_FRA .
+
+copa:jogador_maxence_lacroix a copa:Defensor ;
+    rdfs:label "Maxence Lacroix" ;
+    copa:numeroCamisa 26 ;
+    copa:dataNascimento "2000-04-06"^^xsd:date ;
+    copa:clubeAtual "Crystal Palace" ;
+    copa:jogosPelaSelecao 4 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_FRA .
+
+# Marrocos (MAR) - 26 convocados
+
+copa:jogador_yassine_bounou a copa:Goleiro ;
+    rdfs:label "Yassine Bounou" ;
+    copa:numeroCamisa 1 ;
+    copa:dataNascimento "1991-04-05"^^xsd:date ;
+    copa:clubeAtual "Al-Hilal" ;
+    copa:jogosPelaSelecao 90 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_achraf_hakimi a copa:Defensor ;
+    rdfs:label "Achraf Hakimi" ;
+    copa:numeroCamisa 2 ;
+    copa:dataNascimento "1998-11-04"^^xsd:date ;
+    copa:clubeAtual "Paris Saint-Germain" ;
+    copa:jogosPelaSelecao 96 ;
+    copa:golsPelaSelecao 11 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_noussair_mazraoui a copa:Defensor ;
+    rdfs:label "Noussair Mazraoui" ;
+    copa:numeroCamisa 3 ;
+    copa:dataNascimento "1997-11-14"^^xsd:date ;
+    copa:clubeAtual "Manchester United" ;
+    copa:jogosPelaSelecao 45 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_sofyan_amrabat a copa:MeioCampista ;
+    rdfs:label "Sofyan Amrabat" ;
+    copa:numeroCamisa 4 ;
+    copa:dataNascimento "1996-08-21"^^xsd:date ;
+    copa:clubeAtual "Real Betis" ;
+    copa:jogosPelaSelecao 75 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_marwane_saadane a copa:Defensor ;
+    rdfs:label "Marwane Saâdane" ;
+    copa:numeroCamisa 5 ;
+    copa:dataNascimento "1992-01-17"^^xsd:date ;
+    copa:clubeAtual "Al-Fateh" ;
+    copa:jogosPelaSelecao 8 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_ayyoub_bouaddi a copa:MeioCampista ;
+    rdfs:label "Ayyoub Bouaddi" ;
+    copa:numeroCamisa 6 ;
+    copa:dataNascimento "2007-10-02"^^xsd:date ;
+    copa:clubeAtual "Lille" ;
+    copa:jogosPelaSelecao 3 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_chemsdine_talbi a copa:MeioCampista ;
+    rdfs:label "Chemsdine Talbi" ;
+    copa:numeroCamisa 7 ;
+    copa:dataNascimento "2005-05-09"^^xsd:date ;
+    copa:clubeAtual "Sunderland" ;
+    copa:jogosPelaSelecao 5 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_azzedine_ounahi a copa:MeioCampista ;
+    rdfs:label "Azzedine Ounahi" ;
+    copa:numeroCamisa 8 ;
+    copa:dataNascimento "2000-04-19"^^xsd:date ;
+    copa:clubeAtual "Girona" ;
+    copa:jogosPelaSelecao 49 ;
+    copa:golsPelaSelecao 9 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_soufiane_rahimi a copa:Atacante ;
+    rdfs:label "Soufiane Rahimi" ;
+    copa:numeroCamisa 9 ;
+    copa:dataNascimento "1996-06-02"^^xsd:date ;
+    copa:clubeAtual "Al Ain" ;
+    copa:jogosPelaSelecao 37 ;
+    copa:golsPelaSelecao 12 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_brahim_diaz a copa:Atacante ;
+    rdfs:label "Brahim Díaz" ;
+    copa:numeroCamisa 10 ;
+    copa:dataNascimento "1999-08-03"^^xsd:date ;
+    copa:clubeAtual "Real Madrid" ;
+    copa:jogosPelaSelecao 26 ;
+    copa:golsPelaSelecao 14 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_ismael_saibari a copa:MeioCampista ;
+    rdfs:label "Ismael Saibari" ;
+    copa:numeroCamisa 11 ;
+    copa:dataNascimento "2001-01-28"^^xsd:date ;
+    copa:clubeAtual "PSV Eindhoven" ;
+    copa:jogosPelaSelecao 30 ;
+    copa:golsPelaSelecao 9 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_munir_mohamedi a copa:Goleiro ;
+    rdfs:label "Munir Mohamedi" ;
+    copa:numeroCamisa 12 ;
+    copa:dataNascimento "1989-05-10"^^xsd:date ;
+    copa:clubeAtual "RS Berkane" ;
+    copa:jogosPelaSelecao 52 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_zakaria_el_ouahdi a copa:Defensor ;
+    rdfs:label "Zakaria El Ouahdi" ;
+    copa:numeroCamisa 13 ;
+    copa:dataNascimento "2001-12-31"^^xsd:date ;
+    copa:clubeAtual "Genk" ;
+    copa:jogosPelaSelecao 3 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_issa_diop a copa:Defensor ;
+    rdfs:label "Issa Diop" ;
+    copa:numeroCamisa 14 ;
+    copa:dataNascimento "1997-01-09"^^xsd:date ;
+    copa:clubeAtual "Fulham" ;
+    copa:jogosPelaSelecao 4 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_samir_el_mourabet a copa:MeioCampista ;
+    rdfs:label "Samir El Mourabet" ;
+    copa:numeroCamisa 15 ;
+    copa:dataNascimento "2005-10-06"^^xsd:date ;
+    copa:clubeAtual "Strasbourg" ;
+    copa:jogosPelaSelecao 4 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_gessime_yassine a copa:MeioCampista ;
+    rdfs:label "Gessime Yassine" ;
+    copa:numeroCamisa 16 ;
+    copa:dataNascimento "2005-11-22"^^xsd:date ;
+    copa:clubeAtual "Strasbourg" ;
+    copa:jogosPelaSelecao 4 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_amine_sbai a copa:Atacante ;
+    rdfs:label "Amine Sbaï" ;
+    copa:numeroCamisa 17 ;
+    copa:dataNascimento "2000-11-05"^^xsd:date ;
+    copa:clubeAtual "Angers" ;
+    copa:jogosPelaSelecao 2 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_chadi_riad a copa:Defensor ;
+    rdfs:label "Chadi Riad" ;
+    copa:numeroCamisa 18 ;
+    copa:dataNascimento "2003-06-17"^^xsd:date ;
+    copa:clubeAtual "Crystal Palace" ;
+    copa:jogosPelaSelecao 6 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_youssef_belammari a copa:Defensor ;
+    rdfs:label "Youssef Belammari" ;
+    copa:numeroCamisa 19 ;
+    copa:dataNascimento "1998-09-20"^^xsd:date ;
+    copa:clubeAtual "Al Ahly" ;
+    copa:jogosPelaSelecao 18 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_ayoub_el_kaabi a copa:Atacante ;
+    rdfs:label "Ayoub El Kaabi" ;
+    copa:numeroCamisa 20 ;
+    copa:dataNascimento "1993-06-25"^^xsd:date ;
+    copa:clubeAtual "Olympiacos" ;
+    copa:jogosPelaSelecao 71 ;
+    copa:golsPelaSelecao 35 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_ayoube_amaimouni a copa:Atacante ;
+    rdfs:label "Ayoube Amaimouni" ;
+    copa:numeroCamisa 21 ;
+    copa:dataNascimento "2004-11-30"^^xsd:date ;
+    copa:clubeAtual "Eintracht Frankfurt" ;
+    copa:jogosPelaSelecao 2 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_ahmed_reda_tagnaouti a copa:Goleiro ;
+    rdfs:label "Ahmed Reda Tagnaouti" ;
+    copa:numeroCamisa 22 ;
+    copa:dataNascimento "1996-04-05"^^xsd:date ;
+    copa:clubeAtual "AS FAR" ;
+    copa:jogosPelaSelecao 3 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_bilal_el_khannouss a copa:MeioCampista ;
+    rdfs:label "Bilal El Khannouss" ;
+    copa:numeroCamisa 23 ;
+    copa:dataNascimento "2004-05-10"^^xsd:date ;
+    copa:clubeAtual "VfB Stuttgart" ;
+    copa:jogosPelaSelecao 37 ;
+    copa:golsPelaSelecao 3 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_neil_el_aynaoui a copa:MeioCampista ;
+    rdfs:label "Neil El Aynaoui" ;
+    copa:numeroCamisa 24 ;
+    copa:dataNascimento "2001-07-02"^^xsd:date ;
+    copa:clubeAtual "Roma" ;
+    copa:jogosPelaSelecao 16 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_redouane_halhal a copa:Defensor ;
+    rdfs:label "Redouane Halhal" ;
+    copa:numeroCamisa 25 ;
+    copa:dataNascimento "2003-03-05"^^xsd:date ;
+    copa:clubeAtual "Mechelen" ;
+    copa:jogosPelaSelecao 3 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MAR .
+
+copa:jogador_anass_salah_eddine a copa:Defensor ;
+    rdfs:label "Anass Salah-Eddine" ;
+    copa:numeroCamisa 26 ;
+    copa:dataNascimento "2002-01-18"^^xsd:date ;
+    copa:clubeAtual "PSV Eindhoven" ;
+    copa:jogosPelaSelecao 9 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MAR .
+
+# México (MEX) - 26 convocados
+
+copa:jogador_raul_rangel a copa:Goleiro ;
+    rdfs:label "Raúl Rangel" ;
+    copa:numeroCamisa 1 ;
+    copa:dataNascimento "2000-02-25"^^xsd:date ;
+    copa:clubeAtual "Guadalajara" ;
+    copa:jogosPelaSelecao 14 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_jorge_sanchez a copa:Defensor ;
+    rdfs:label "Jorge Sánchez" ;
+    copa:numeroCamisa 2 ;
+    copa:dataNascimento "1997-12-10"^^xsd:date ;
+    copa:clubeAtual "PAOK" ;
+    copa:jogosPelaSelecao 59 ;
+    copa:golsPelaSelecao 3 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_cesar_montes a copa:Defensor ;
+    rdfs:label "César Montes" ;
+    copa:numeroCamisa 3 ;
+    copa:dataNascimento "1997-02-24"^^xsd:date ;
+    copa:clubeAtual "Lokomotiv Moscow" ;
+    copa:jogosPelaSelecao 67 ;
+    copa:golsPelaSelecao 4 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_edson_alvarez a copa:Defensor ;
+    rdfs:label "Edson Álvarez" ;
+    copa:numeroCamisa 4 ;
+    copa:dataNascimento "1997-10-24"^^xsd:date ;
+    copa:clubeAtual "Fenerbahçe" ;
+    copa:jogosPelaSelecao 98 ;
+    copa:golsPelaSelecao 7 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_johan_vasquez a copa:Defensor ;
+    rdfs:label "Johan Vásquez" ;
+    copa:numeroCamisa 5 ;
+    copa:dataNascimento "1998-10-22"^^xsd:date ;
+    copa:clubeAtual "Genoa" ;
+    copa:jogosPelaSelecao 46 ;
+    copa:golsPelaSelecao 3 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_erik_lira a copa:MeioCampista ;
+    rdfs:label "Érik Lira" ;
+    copa:numeroCamisa 6 ;
+    copa:dataNascimento "2000-05-08"^^xsd:date ;
+    copa:clubeAtual "Cruz Azul" ;
+    copa:jogosPelaSelecao 25 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_luis_romo a copa:MeioCampista ;
+    rdfs:label "Luis Romo" ;
+    copa:numeroCamisa 7 ;
+    copa:dataNascimento "1995-06-05"^^xsd:date ;
+    copa:clubeAtual "Guadalajara" ;
+    copa:jogosPelaSelecao 63 ;
+    copa:golsPelaSelecao 4 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_alvaro_fidalgo a copa:MeioCampista ;
+    rdfs:label "Álvaro Fidalgo" ;
+    copa:numeroCamisa 8 ;
+    copa:dataNascimento "1997-04-09"^^xsd:date ;
+    copa:clubeAtual "Real Betis" ;
+    copa:jogosPelaSelecao 4 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_raul_jimenez a copa:Atacante ;
+    rdfs:label "Raúl Jiménez" ;
+    copa:numeroCamisa 9 ;
+    copa:dataNascimento "1991-05-05"^^xsd:date ;
+    copa:clubeAtual "Fulham" ;
+    copa:jogosPelaSelecao 124 ;
+    copa:golsPelaSelecao 44 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_alexis_vega a copa:Atacante ;
+    rdfs:label "Alexis Vega" ;
+    copa:numeroCamisa 10 ;
+    copa:dataNascimento "1997-11-25"^^xsd:date ;
+    copa:clubeAtual "Toluca" ;
+    copa:jogosPelaSelecao 52 ;
+    copa:golsPelaSelecao 7 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_santiago_gimenez a copa:Atacante ;
+    rdfs:label "Santiago Giménez" ;
+    copa:numeroCamisa 11 ;
+    copa:dataNascimento "2001-04-18"^^xsd:date ;
+    copa:clubeAtual "AC Milan" ;
+    copa:jogosPelaSelecao 47 ;
+    copa:golsPelaSelecao 6 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_carlos_acevedo a copa:Goleiro ;
+    rdfs:label "Carlos Acevedo" ;
+    copa:numeroCamisa 12 ;
+    copa:dataNascimento "1996-04-19"^^xsd:date ;
+    copa:clubeAtual "Santos Laguna" ;
+    copa:jogosPelaSelecao 7 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_guillermo_ochoa a copa:Goleiro ;
+    rdfs:label "Guillermo Ochoa" ;
+    copa:numeroCamisa 13 ;
+    copa:dataNascimento "1985-07-13"^^xsd:date ;
+    copa:clubeAtual "AEL Limassol" ;
+    copa:jogosPelaSelecao 152 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_armando_gonzalez a copa:Atacante ;
+    rdfs:label "Armando González" ;
+    copa:numeroCamisa 14 ;
+    copa:dataNascimento "2003-04-20"^^xsd:date ;
+    copa:clubeAtual "Guadalajara" ;
+    copa:jogosPelaSelecao 7 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_israel_reyes a copa:Defensor ;
+    rdfs:label "Israel Reyes" ;
+    copa:numeroCamisa 15 ;
+    copa:dataNascimento "2000-05-23"^^xsd:date ;
+    copa:clubeAtual "América" ;
+    copa:jogosPelaSelecao 34 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_julian_quinones a copa:Atacante ;
+    rdfs:label "Julián Quiñones" ;
+    copa:numeroCamisa 16 ;
+    copa:dataNascimento "1997-03-24"^^xsd:date ;
+    copa:clubeAtual "Al-Qadsiah" ;
+    copa:jogosPelaSelecao 22 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_orbelin_pineda a copa:MeioCampista ;
+    rdfs:label "Orbelín Pineda" ;
+    copa:numeroCamisa 17 ;
+    copa:dataNascimento "1996-03-24"^^xsd:date ;
+    copa:clubeAtual "AEK Athens" ;
+    copa:jogosPelaSelecao 92 ;
+    copa:golsPelaSelecao 12 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_obed_vargas a copa:MeioCampista ;
+    rdfs:label "Obed Vargas" ;
+    copa:numeroCamisa 18 ;
+    copa:dataNascimento "2005-08-05"^^xsd:date ;
+    copa:clubeAtual "Atlético Madrid" ;
+    copa:jogosPelaSelecao 6 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_gilberto_mora a copa:MeioCampista ;
+    rdfs:label "Gilberto Mora" ;
+    copa:numeroCamisa 19 ;
+    copa:dataNascimento "2008-10-14"^^xsd:date ;
+    copa:clubeAtual "Tijuana" ;
+    copa:jogosPelaSelecao 8 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_mateo_chavez a copa:Defensor ;
+    rdfs:label "Mateo Chávez" ;
+    copa:numeroCamisa 20 ;
+    copa:dataNascimento "2004-05-12"^^xsd:date ;
+    copa:clubeAtual "AZ" ;
+    copa:jogosPelaSelecao 10 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_cesar_huerta a copa:Atacante ;
+    rdfs:label "César Huerta" ;
+    copa:numeroCamisa 21 ;
+    copa:dataNascimento "2000-12-03"^^xsd:date ;
+    copa:clubeAtual "Anderlecht" ;
+    copa:jogosPelaSelecao 26 ;
+    copa:golsPelaSelecao 3 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_guillermo_martinez a copa:Atacante ;
+    rdfs:label "Guillermo Martínez" ;
+    copa:numeroCamisa 22 ;
+    copa:dataNascimento "1995-03-15"^^xsd:date ;
+    copa:clubeAtual "Pumas UNAM" ;
+    copa:jogosPelaSelecao 12 ;
+    copa:golsPelaSelecao 3 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_jesus_gallardo a copa:Defensor ;
+    rdfs:label "Jesús Gallardo" ;
+    copa:numeroCamisa 23 ;
+    copa:dataNascimento "1994-08-15"^^xsd:date ;
+    copa:clubeAtual "Toluca" ;
+    copa:jogosPelaSelecao 121 ;
+    copa:golsPelaSelecao 3 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_luis_chavez a copa:MeioCampista ;
+    rdfs:label "Luis Chávez" ;
+    copa:numeroCamisa 24 ;
+    copa:dataNascimento "1996-01-15"^^xsd:date ;
+    copa:clubeAtual "Dynamo Moscow" ;
+    copa:jogosPelaSelecao 45 ;
+    copa:golsPelaSelecao 5 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_roberto_alvarado a copa:Atacante ;
+    rdfs:label "Roberto Alvarado" ;
+    copa:numeroCamisa 25 ;
+    copa:dataNascimento "1998-09-07"^^xsd:date ;
+    copa:clubeAtual "Guadalajara" ;
+    copa:jogosPelaSelecao 67 ;
+    copa:golsPelaSelecao 5 ;
+    copa:jogaPor copa:selecao_MEX .
+
+copa:jogador_brian_gutierrez a copa:MeioCampista ;
+    rdfs:label "Brian Gutiérrez" ;
+    copa:numeroCamisa 26 ;
+    copa:dataNascimento "2003-06-17"^^xsd:date ;
+    copa:clubeAtual "Guadalajara" ;
+    copa:jogosPelaSelecao 7 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_MEX .
+
+# Noruega (NOR) - 26 convocados
+
+copa:jogador_rjan_nyland a copa:Goleiro ;
+    rdfs:label "Ørjan Nyland" ;
+    copa:numeroCamisa 1 ;
+    copa:dataNascimento "1990-09-10"^^xsd:date ;
+    copa:clubeAtual "Sevilla" ;
+    copa:jogosPelaSelecao 71 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_morten_thorsby a copa:MeioCampista ;
+    rdfs:label "Morten Thorsby" ;
+    copa:numeroCamisa 2 ;
+    copa:dataNascimento "1996-05-05"^^xsd:date ;
+    copa:clubeAtual "Cremonese" ;
+    copa:jogosPelaSelecao 31 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_kristoffer_ajer a copa:Defensor ;
+    rdfs:label "Kristoffer Ajer" ;
+    copa:numeroCamisa 3 ;
+    copa:dataNascimento "1998-04-17"^^xsd:date ;
+    copa:clubeAtual "Brentford" ;
+    copa:jogosPelaSelecao 52 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_leo_stigard a copa:Defensor ;
+    rdfs:label "Leo Østigård" ;
+    copa:numeroCamisa 4 ;
+    copa:dataNascimento "1999-11-28"^^xsd:date ;
+    copa:clubeAtual "Genoa" ;
+    copa:jogosPelaSelecao 38 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_david_m_ller_wolfe a copa:Defensor ;
+    rdfs:label "David Møller Wolfe" ;
+    copa:numeroCamisa 5 ;
+    copa:dataNascimento "2002-04-23"^^xsd:date ;
+    copa:clubeAtual "Wolverhampton Wanderers" ;
+    copa:jogosPelaSelecao 22 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_patrick_berg a copa:MeioCampista ;
+    rdfs:label "Patrick Berg" ;
+    copa:numeroCamisa 6 ;
+    copa:dataNascimento "1997-11-24"^^xsd:date ;
+    copa:clubeAtual "Bodø/Glimt" ;
+    copa:jogosPelaSelecao 43 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_alexander_s_rloth a copa:Atacante ;
+    rdfs:label "Alexander Sørloth" ;
+    copa:numeroCamisa 7 ;
+    copa:dataNascimento "1995-12-05"^^xsd:date ;
+    copa:clubeAtual "Atlético Madrid" ;
+    copa:jogosPelaSelecao 72 ;
+    copa:golsPelaSelecao 26 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_sander_berge a copa:MeioCampista ;
+    rdfs:label "Sander Berge" ;
+    copa:numeroCamisa 8 ;
+    copa:dataNascimento "1998-02-14"^^xsd:date ;
+    copa:clubeAtual "Fulham" ;
+    copa:jogosPelaSelecao 66 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_erling_haaland a copa:Atacante ;
+    rdfs:label "Erling Haaland" ;
+    copa:numeroCamisa 9 ;
+    copa:dataNascimento "2000-07-21"^^xsd:date ;
+    copa:clubeAtual "Manchester City" ;
+    copa:jogosPelaSelecao 50 ;
+    copa:golsPelaSelecao 55 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_martin_degaard a copa:MeioCampista ;
+    rdfs:label "Martin Ødegaard" ;
+    copa:numeroCamisa 10 ;
+    copa:dataNascimento "1998-12-17"^^xsd:date ;
+    copa:clubeAtual "Arsenal" ;
+    copa:jogosPelaSelecao 68 ;
+    copa:golsPelaSelecao 5 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_j_rgen_strand_larsen a copa:Atacante ;
+    rdfs:label "Jørgen Strand Larsen" ;
+    copa:numeroCamisa 11 ;
+    copa:dataNascimento "2000-02-06"^^xsd:date ;
+    copa:clubeAtual "Crystal Palace" ;
+    copa:jogosPelaSelecao 28 ;
+    copa:golsPelaSelecao 6 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_sander_tangvik a copa:Goleiro ;
+    rdfs:label "Sander Tangvik" ;
+    copa:numeroCamisa 12 ;
+    copa:dataNascimento "2002-11-29"^^xsd:date ;
+    copa:clubeAtual "Hamburger SV" ;
+    copa:jogosPelaSelecao 0 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_egil_selvik a copa:Goleiro ;
+    rdfs:label "Egil Selvik" ;
+    copa:numeroCamisa 13 ;
+    copa:dataNascimento "1997-07-30"^^xsd:date ;
+    copa:clubeAtual "Watford" ;
+    copa:jogosPelaSelecao 7 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_fredrik_aursnes a copa:MeioCampista ;
+    rdfs:label "Fredrik Aursnes" ;
+    copa:numeroCamisa 14 ;
+    copa:dataNascimento "1995-12-10"^^xsd:date ;
+    copa:clubeAtual "Benfica" ;
+    copa:jogosPelaSelecao 22 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_fredrik_andre_bj_rkan a copa:Defensor ;
+    rdfs:label "Fredrik André Bjørkan" ;
+    copa:numeroCamisa 15 ;
+    copa:dataNascimento "1998-08-21"^^xsd:date ;
+    copa:clubeAtual "Bodø/Glimt" ;
+    copa:jogosPelaSelecao 21 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_marcus_holmgren_pedersen a copa:Defensor ;
+    rdfs:label "Marcus Holmgren Pedersen" ;
+    copa:numeroCamisa 16 ;
+    copa:dataNascimento "2000-07-16"^^xsd:date ;
+    copa:clubeAtual "Torino" ;
+    copa:jogosPelaSelecao 32 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_torbj_rn_heggem a copa:Defensor ;
+    rdfs:label "Torbjørn Heggem" ;
+    copa:numeroCamisa 17 ;
+    copa:dataNascimento "1999-01-12"^^xsd:date ;
+    copa:clubeAtual "Bologna" ;
+    copa:jogosPelaSelecao 15 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_kristian_thorstvedt a copa:MeioCampista ;
+    rdfs:label "Kristian Thorstvedt" ;
+    copa:numeroCamisa 18 ;
+    copa:dataNascimento "1999-03-13"^^xsd:date ;
+    copa:clubeAtual "Sassuolo" ;
+    copa:jogosPelaSelecao 37 ;
+    copa:golsPelaSelecao 4 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_thelo_aasgaard a copa:MeioCampista ;
+    rdfs:label "Thelo Aasgaard" ;
+    copa:numeroCamisa 19 ;
+    copa:dataNascimento "2002-05-02"^^xsd:date ;
+    copa:clubeAtual "Rangers" ;
+    copa:jogosPelaSelecao 8 ;
+    copa:golsPelaSelecao 5 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_antonio_nusa a copa:MeioCampista ;
+    rdfs:label "Antonio Nusa" ;
+    copa:numeroCamisa 20 ;
+    copa:dataNascimento "2005-04-17"^^xsd:date ;
+    copa:clubeAtual "RB Leipzig" ;
+    copa:jogosPelaSelecao 24 ;
+    copa:golsPelaSelecao 8 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_andreas_schjelderup a copa:MeioCampista ;
+    rdfs:label "Andreas Schjelderup" ;
+    copa:numeroCamisa 21 ;
+    copa:dataNascimento "2004-06-01"^^xsd:date ;
+    copa:clubeAtual "Benfica" ;
+    copa:jogosPelaSelecao 12 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_oscar_bobb a copa:MeioCampista ;
+    rdfs:label "Oscar Bobb" ;
+    copa:numeroCamisa 22 ;
+    copa:dataNascimento "2003-07-12"^^xsd:date ;
+    copa:clubeAtual "Fulham" ;
+    copa:jogosPelaSelecao 20 ;
+    copa:golsPelaSelecao 2 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_jens_petter_hauge a copa:MeioCampista ;
+    rdfs:label "Jens Petter Hauge" ;
+    copa:numeroCamisa 23 ;
+    copa:dataNascimento "1999-10-12"^^xsd:date ;
+    copa:clubeAtual "Bodø/Glimt" ;
+    copa:jogosPelaSelecao 15 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_sondre_langas a copa:Defensor ;
+    rdfs:label "Sondre Langås" ;
+    copa:numeroCamisa 24 ;
+    copa:dataNascimento "2001-02-02"^^xsd:date ;
+    copa:clubeAtual "Derby County" ;
+    copa:jogosPelaSelecao 3 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_henrik_falchener a copa:Defensor ;
+    rdfs:label "Henrik Falchener" ;
+    copa:numeroCamisa 25 ;
+    copa:dataNascimento "2003-05-08"^^xsd:date ;
+    copa:clubeAtual "Viking" ;
+    copa:jogosPelaSelecao 1 ;
+    copa:golsPelaSelecao 0 ;
+    copa:jogaPor copa:selecao_NOR .
+
+copa:jogador_julian_ryerson a copa:Defensor ;
+    rdfs:label "Julian Ryerson" ;
+    copa:numeroCamisa 26 ;
+    copa:dataNascimento "1997-11-17"^^xsd:date ;
+    copa:clubeAtual "Borussia Dortmund" ;
+    copa:jogosPelaSelecao 43 ;
+    copa:golsPelaSelecao 1 ;
+    copa:jogaPor copa:selecao_NOR .
+
+
+# ============================================================================
+# A-BOX 6/6 - PARTIDAS (38): mata-mata completo + Grupo A completo
+# ============================================================================
+
+# 32 partidas do mata-mata (16-avos ate a final) e as 6 do Grupo A.
+# copa:vencedora e omitida no unico empate que nao teve disputa de penaltis -
+# ausencia de dado, nao dado ausente: e o que torna o OPTIONAL necessario.
+
+copa:partida_r32_1_rsa_can a copa:Partida16Avos ;
+    rdfs:label "16-avos de final: África do Sul 0-1 Canadá" ;
+    copa:dataPartida "2026-06-28"^^xsd:date ;
+    copa:mandante copa:selecao_RSA ;
+    copa:visitante copa:selecao_CAN ;
+    copa:golsMandante 0 ;
+    copa:golsVisitante 1 ;
+    copa:publico 69237 ;
+    copa:vencedora copa:selecao_CAN ;
+    copa:sediadaEm copa:estadio_sofi_stadium .
+
+copa:partida_r32_2_bra_jpn a copa:Partida16Avos ;
+    rdfs:label "16-avos de final: Brasil 2-1 Japão" ;
+    copa:dataPartida "2026-06-29"^^xsd:date ;
+    copa:mandante copa:selecao_BRA ;
+    copa:visitante copa:selecao_JPN ;
+    copa:golsMandante 2 ;
+    copa:golsVisitante 1 ;
+    copa:publico 68777 ;
+    copa:vencedora copa:selecao_BRA ;
+    copa:sediadaEm copa:estadio_nrg_stadium .
+
+copa:partida_r32_3_ger_par a copa:Partida16Avos ;
+    rdfs:label "16-avos de final: Alemanha 1-1 Paraguai (penaltis 3-4)" ;
+    copa:dataPartida "2026-06-29"^^xsd:date ;
+    copa:mandante copa:selecao_GER ;
+    copa:visitante copa:selecao_PAR ;
+    copa:golsMandante 1 ;
+    copa:golsVisitante 1 ;
+    copa:publico 63945 ;
+    copa:vencedora copa:selecao_PAR ;
+    copa:sediadaEm copa:estadio_gillette_stadium .
+
+copa:partida_r32_4_ned_mar a copa:Partida16Avos ;
+    rdfs:label "16-avos de final: Países Baixos 1-1 Marrocos (penaltis 2-3)" ;
+    copa:dataPartida "2026-06-29"^^xsd:date ;
+    copa:mandante copa:selecao_NED ;
+    copa:visitante copa:selecao_MAR ;
+    copa:golsMandante 1 ;
+    copa:golsVisitante 1 ;
+    copa:publico 51243 ;
+    copa:vencedora copa:selecao_MAR ;
+    copa:sediadaEm copa:estadio_estadio_bbva .
+
+copa:partida_r32_5_civ_nor a copa:Partida16Avos ;
+    rdfs:label "16-avos de final: Costa do Marfim 1-2 Noruega" ;
+    copa:dataPartida "2026-06-30"^^xsd:date ;
+    copa:mandante copa:selecao_CIV ;
+    copa:visitante copa:selecao_NOR ;
+    copa:golsMandante 1 ;
+    copa:golsVisitante 2 ;
+    copa:publico 69665 ;
+    copa:vencedora copa:selecao_NOR ;
+    copa:sediadaEm copa:estadio_at_t_stadium .
+
+copa:partida_r32_6_fra_swe a copa:Partida16Avos ;
+    rdfs:label "16-avos de final: França 3-0 Suécia" ;
+    copa:dataPartida "2026-06-30"^^xsd:date ;
+    copa:mandante copa:selecao_FRA ;
+    copa:visitante copa:selecao_SWE ;
+    copa:golsMandante 3 ;
+    copa:golsVisitante 0 ;
+    copa:publico 80663 ;
+    copa:vencedora copa:selecao_FRA ;
+    copa:sediadaEm copa:estadio_metlife_stadium .
+
+copa:partida_r32_7_mex_ecu a copa:Partida16Avos ;
+    rdfs:label "16-avos de final: México 2-0 Equador" ;
+    copa:dataPartida "2026-06-30"^^xsd:date ;
+    copa:mandante copa:selecao_MEX ;
+    copa:visitante copa:selecao_ECU ;
+    copa:golsMandante 2 ;
+    copa:golsVisitante 0 ;
+    copa:publico 80824 ;
+    copa:vencedora copa:selecao_MEX ;
+    copa:sediadaEm copa:estadio_estadio_azteca .
+
+copa:partida_r32_8_eng_cod a copa:Partida16Avos ;
+    rdfs:label "16-avos de final: Inglaterra 2-1 República Democrática do Congo" ;
+    copa:dataPartida "2026-07-01"^^xsd:date ;
+    copa:mandante copa:selecao_ENG ;
+    copa:visitante copa:selecao_COD ;
+    copa:golsMandante 2 ;
+    copa:golsVisitante 1 ;
+    copa:publico 68239 ;
+    copa:vencedora copa:selecao_ENG ;
+    copa:sediadaEm copa:estadio_mercedes_benz_stadium .
+
+copa:partida_r32_9_bel_sen a copa:Partida16Avos ;
+    rdfs:label "16-avos de final: Bélgica 3-2 Senegal" ;
+    copa:dataPartida "2026-07-01"^^xsd:date ;
+    copa:mandante copa:selecao_BEL ;
+    copa:visitante copa:selecao_SEN ;
+    copa:golsMandante 3 ;
+    copa:golsVisitante 2 ;
+    copa:publico 66925 ;
+    copa:vencedora copa:selecao_BEL ;
+    copa:sediadaEm copa:estadio_lumen_field .
+
+copa:partida_r32_10_usa_bih a copa:Partida16Avos ;
+    rdfs:label "16-avos de final: Estados Unidos 2-0 Bósnia e Herzegovina" ;
+    copa:dataPartida "2026-07-01"^^xsd:date ;
+    copa:mandante copa:selecao_USA ;
+    copa:visitante copa:selecao_BIH ;
+    copa:golsMandante 2 ;
+    copa:golsVisitante 0 ;
+    copa:publico 68827 ;
+    copa:vencedora copa:selecao_USA ;
+    copa:sediadaEm copa:estadio_levi_s_stadium .
+
+copa:partida_r32_11_esp_aut a copa:Partida16Avos ;
+    rdfs:label "16-avos de final: Espanha 3-0 Áustria" ;
+    copa:dataPartida "2026-07-02"^^xsd:date ;
+    copa:mandante copa:selecao_ESP ;
+    copa:visitante copa:selecao_AUT ;
+    copa:golsMandante 3 ;
+    copa:golsVisitante 0 ;
+    copa:publico 70492 ;
+    copa:vencedora copa:selecao_ESP ;
+    copa:sediadaEm copa:estadio_sofi_stadium .
+
+copa:partida_r32_12_por_cro a copa:Partida16Avos ;
+    rdfs:label "16-avos de final: Portugal 2-1 Croácia" ;
+    copa:dataPartida "2026-07-02"^^xsd:date ;
+    copa:mandante copa:selecao_POR ;
+    copa:visitante copa:selecao_CRO ;
+    copa:golsMandante 2 ;
+    copa:golsVisitante 1 ;
+    copa:publico 43036 ;
+    copa:vencedora copa:selecao_POR ;
+    copa:sediadaEm copa:estadio_bmo_field .
+
+copa:partida_r32_13_sui_alg a copa:Partida16Avos ;
+    rdfs:label "16-avos de final: Suíça 2-0 Argélia" ;
+    copa:dataPartida "2026-07-02"^^xsd:date ;
+    copa:mandante copa:selecao_SUI ;
+    copa:visitante copa:selecao_ALG ;
+    copa:golsMandante 2 ;
+    copa:golsVisitante 0 ;
+    copa:publico 52497 ;
+    copa:vencedora copa:selecao_SUI ;
+    copa:sediadaEm copa:estadio_bc_place .
+
+copa:partida_r32_14_aus_egy a copa:Partida16Avos ;
+    rdfs:label "16-avos de final: Austrália 1-1 Egito (penaltis 2-4)" ;
+    copa:dataPartida "2026-07-03"^^xsd:date ;
+    copa:mandante copa:selecao_AUS ;
+    copa:visitante copa:selecao_EGY ;
+    copa:golsMandante 1 ;
+    copa:golsVisitante 1 ;
+    copa:publico 70244 ;
+    copa:vencedora copa:selecao_EGY ;
+    copa:sediadaEm copa:estadio_at_t_stadium .
+
+copa:partida_r32_15_arg_cpv a copa:Partida16Avos ;
+    rdfs:label "16-avos de final: Argentina 3-2 Cabo Verde" ;
+    copa:dataPartida "2026-07-03"^^xsd:date ;
+    copa:mandante copa:selecao_ARG ;
+    copa:visitante copa:selecao_CPV ;
+    copa:golsMandante 3 ;
+    copa:golsVisitante 2 ;
+    copa:publico 64478 ;
+    copa:vencedora copa:selecao_ARG ;
+    copa:sediadaEm copa:estadio_hard_rock_stadium .
+
+copa:partida_r32_16_col_gha a copa:Partida16Avos ;
+    rdfs:label "16-avos de final: Colômbia 1-0 Gana" ;
+    copa:dataPartida "2026-07-03"^^xsd:date ;
+    copa:mandante copa:selecao_COL ;
+    copa:visitante copa:selecao_GHA ;
+    copa:golsMandante 1 ;
+    copa:golsVisitante 0 ;
+    copa:publico 69045 ;
+    copa:vencedora copa:selecao_COL ;
+    copa:sediadaEm copa:estadio_arrowhead_stadium .
+
+copa:partida_r16_1_can_mar a copa:PartidaOitavas ;
+    rdfs:label "Oitavas de final: Canadá 0-3 Marrocos" ;
+    copa:dataPartida "2026-07-04"^^xsd:date ;
+    copa:mandante copa:selecao_CAN ;
+    copa:visitante copa:selecao_MAR ;
+    copa:golsMandante 0 ;
+    copa:golsVisitante 3 ;
+    copa:publico 68777 ;
+    copa:vencedora copa:selecao_MAR ;
+    copa:sediadaEm copa:estadio_nrg_stadium .
+
+copa:partida_r16_2_par_fra a copa:PartidaOitavas ;
+    rdfs:label "Oitavas de final: Paraguai 0-1 França" ;
+    copa:dataPartida "2026-07-04"^^xsd:date ;
+    copa:mandante copa:selecao_PAR ;
+    copa:visitante copa:selecao_FRA ;
+    copa:golsMandante 0 ;
+    copa:golsVisitante 1 ;
+    copa:publico 68324 ;
+    copa:vencedora copa:selecao_FRA ;
+    copa:sediadaEm copa:estadio_lincoln_financial_field .
+
+copa:partida_r16_3_bra_nor a copa:PartidaOitavas ;
+    rdfs:label "Oitavas de final: Brasil 1-2 Noruega" ;
+    copa:dataPartida "2026-07-05"^^xsd:date ;
+    copa:mandante copa:selecao_BRA ;
+    copa:visitante copa:selecao_NOR ;
+    copa:golsMandante 1 ;
+    copa:golsVisitante 2 ;
+    copa:publico 80663 ;
+    copa:vencedora copa:selecao_NOR ;
+    copa:sediadaEm copa:estadio_metlife_stadium .
+
+copa:partida_r16_4_mex_eng a copa:PartidaOitavas ;
+    rdfs:label "Oitavas de final: México 2-3 Inglaterra" ;
+    copa:dataPartida "2026-07-05"^^xsd:date ;
+    copa:mandante copa:selecao_MEX ;
+    copa:visitante copa:selecao_ENG ;
+    copa:golsMandante 2 ;
+    copa:golsVisitante 3 ;
+    copa:publico 80824 ;
+    copa:vencedora copa:selecao_ENG ;
+    copa:sediadaEm copa:estadio_estadio_azteca .
+
+copa:partida_r16_5_por_esp a copa:PartidaOitavas ;
+    rdfs:label "Oitavas de final: Portugal 0-1 Espanha" ;
+    copa:dataPartida "2026-07-06"^^xsd:date ;
+    copa:mandante copa:selecao_POR ;
+    copa:visitante copa:selecao_ESP ;
+    copa:golsMandante 0 ;
+    copa:golsVisitante 1 ;
+    copa:publico 70649 ;
+    copa:vencedora copa:selecao_ESP ;
+    copa:sediadaEm copa:estadio_at_t_stadium .
+
+copa:partida_r16_6_usa_bel a copa:PartidaOitavas ;
+    rdfs:label "Oitavas de final: Estados Unidos 1-4 Bélgica" ;
+    copa:dataPartida "2026-07-06"^^xsd:date ;
+    copa:mandante copa:selecao_USA ;
+    copa:visitante copa:selecao_BEL ;
+    copa:golsMandante 1 ;
+    copa:golsVisitante 4 ;
+    copa:publico 66925 ;
+    copa:vencedora copa:selecao_BEL ;
+    copa:sediadaEm copa:estadio_lumen_field .
+
+copa:partida_r16_7_arg_egy a copa:PartidaOitavas ;
+    rdfs:label "Oitavas de final: Argentina 3-2 Egito" ;
+    copa:dataPartida "2026-07-07"^^xsd:date ;
+    copa:mandante copa:selecao_ARG ;
+    copa:visitante copa:selecao_EGY ;
+    copa:golsMandante 3 ;
+    copa:golsVisitante 2 ;
+    copa:publico 68239 ;
+    copa:vencedora copa:selecao_ARG ;
+    copa:sediadaEm copa:estadio_mercedes_benz_stadium .
+
+copa:partida_r16_8_sui_col a copa:PartidaOitavas ;
+    rdfs:label "Oitavas de final: Suíça 0-0 Colômbia (penaltis 4-3)" ;
+    copa:dataPartida "2026-07-07"^^xsd:date ;
+    copa:mandante copa:selecao_SUI ;
+    copa:visitante copa:selecao_COL ;
+    copa:golsMandante 0 ;
+    copa:golsVisitante 0 ;
+    copa:publico 52497 ;
+    copa:vencedora copa:selecao_SUI ;
+    copa:sediadaEm copa:estadio_bc_place .
+
+copa:partida_qf1_fra_mar a copa:PartidaQuartas ;
+    rdfs:label "Quartas de final: França 2-0 Marrocos" ;
+    copa:dataPartida "2026-07-09"^^xsd:date ;
+    copa:mandante copa:selecao_FRA ;
+    copa:visitante copa:selecao_MAR ;
+    copa:golsMandante 2 ;
+    copa:golsVisitante 0 ;
+    copa:publico 63811 ;
+    copa:vencedora copa:selecao_FRA ;
+    copa:sediadaEm copa:estadio_gillette_stadium .
+
+copa:partida_qf2_esp_bel a copa:PartidaQuartas ;
+    rdfs:label "Quartas de final: Espanha 2-1 Bélgica" ;
+    copa:dataPartida "2026-07-10"^^xsd:date ;
+    copa:mandante copa:selecao_ESP ;
+    copa:visitante copa:selecao_BEL ;
+    copa:golsMandante 2 ;
+    copa:golsVisitante 1 ;
+    copa:publico 70492 ;
+    copa:vencedora copa:selecao_ESP ;
+    copa:sediadaEm copa:estadio_sofi_stadium .
+
+copa:partida_qf3_nor_eng a copa:PartidaQuartas ;
+    rdfs:label "Quartas de final: Noruega 1-2 Inglaterra" ;
+    copa:dataPartida "2026-07-11"^^xsd:date ;
+    copa:mandante copa:selecao_NOR ;
+    copa:visitante copa:selecao_ENG ;
+    copa:golsMandante 1 ;
+    copa:golsVisitante 2 ;
+    copa:publico 64478 ;
+    copa:vencedora copa:selecao_ENG ;
+    copa:sediadaEm copa:estadio_hard_rock_stadium .
+
+copa:partida_qf4_arg_sui a copa:PartidaQuartas ;
+    rdfs:label "Quartas de final: Argentina 3-1 Suíça" ;
+    copa:dataPartida "2026-07-11"^^xsd:date ;
+    copa:mandante copa:selecao_ARG ;
+    copa:visitante copa:selecao_SUI ;
+    copa:golsMandante 3 ;
+    copa:golsVisitante 1 ;
+    copa:publico 69045 ;
+    copa:vencedora copa:selecao_ARG ;
+    copa:sediadaEm copa:estadio_arrowhead_stadium .
+
+copa:partida_sf1_fra_esp a copa:PartidaSemifinal ;
+    rdfs:label "Semifinal: França 0-2 Espanha" ;
+    copa:dataPartida "2026-07-14"^^xsd:date ;
+    copa:mandante copa:selecao_FRA ;
+    copa:visitante copa:selecao_ESP ;
+    copa:golsMandante 0 ;
+    copa:golsVisitante 2 ;
+    copa:publico 70176 ;
+    copa:vencedora copa:selecao_ESP ;
+    copa:sediadaEm copa:estadio_at_t_stadium .
+
+copa:partida_sf2_eng_arg a copa:PartidaSemifinal ;
+    rdfs:label "Semifinal: Inglaterra 1-2 Argentina" ;
+    copa:dataPartida "2026-07-15"^^xsd:date ;
+    copa:mandante copa:selecao_ENG ;
+    copa:visitante copa:selecao_ARG ;
+    copa:golsMandante 1 ;
+    copa:golsVisitante 2 ;
+    copa:publico 68239 ;
+    copa:vencedora copa:selecao_ARG ;
+    copa:sediadaEm copa:estadio_mercedes_benz_stadium .
+
+copa:partida_3rd_fra_eng a copa:PartidaTerceiroLugar ;
+    rdfs:label "Disputa do terceiro lugar: França 4-6 Inglaterra" ;
+    copa:dataPartida "2026-07-18"^^xsd:date ;
+    copa:mandante copa:selecao_FRA ;
+    copa:visitante copa:selecao_ENG ;
+    copa:golsMandante 4 ;
+    copa:golsVisitante 6 ;
+    copa:publico 64478 ;
+    copa:vencedora copa:selecao_ENG ;
+    copa:sediadaEm copa:estadio_hard_rock_stadium .
+
+copa:partida_final_esp_arg a copa:PartidaFinal ;
+    rdfs:label "Final: Espanha 1-0 Argentina" ;
+    copa:dataPartida "2026-07-19"^^xsd:date ;
+    copa:mandante copa:selecao_ESP ;
+    copa:visitante copa:selecao_ARG ;
+    copa:golsMandante 1 ;
+    copa:golsVisitante 0 ;
+    copa:publico 80663 ;
+    copa:vencedora copa:selecao_ESP ;
+    copa:sediadaEm copa:estadio_metlife_stadium .
+
+copa:partida_a1_mex_rsa a copa:PartidaFaseGrupos ;
+    rdfs:label "Fase de grupos: México 2-0 África do Sul" ;
+    copa:dataPartida "2026-06-11"^^xsd:date ;
+    copa:mandante copa:selecao_MEX ;
+    copa:visitante copa:selecao_RSA ;
+    copa:golsMandante 2 ;
+    copa:golsVisitante 0 ;
+    copa:publico 80824 ;
+    copa:vencedora copa:selecao_MEX ;
+    copa:sediadaEm copa:estadio_estadio_azteca .
+
+copa:partida_a2_kor_cze a copa:PartidaFaseGrupos ;
+    rdfs:label "Fase de grupos: Coreia do Sul 2-1 Chéquia" ;
+    copa:dataPartida "2026-06-11"^^xsd:date ;
+    copa:mandante copa:selecao_KOR ;
+    copa:visitante copa:selecao_CZE ;
+    copa:golsMandante 2 ;
+    copa:golsVisitante 1 ;
+    copa:publico 44985 ;
+    copa:vencedora copa:selecao_KOR ;
+    copa:sediadaEm copa:estadio_estadio_akron .
+
+copa:partida_a3_cze_rsa a copa:PartidaFaseGrupos ;
+    rdfs:label "Fase de grupos: Chéquia 1-1 África do Sul" ;
+    copa:dataPartida "2026-06-18"^^xsd:date ;
+    copa:mandante copa:selecao_CZE ;
+    copa:visitante copa:selecao_RSA ;
+    copa:golsMandante 1 ;
+    copa:golsVisitante 1 ;
+    copa:publico 67442 ;
+    copa:sediadaEm copa:estadio_mercedes_benz_stadium .
+
+copa:partida_a4_mex_kor a copa:PartidaFaseGrupos ;
+    rdfs:label "Fase de grupos: México 1-0 Coreia do Sul" ;
+    copa:dataPartida "2026-06-18"^^xsd:date ;
+    copa:mandante copa:selecao_MEX ;
+    copa:visitante copa:selecao_KOR ;
+    copa:golsMandante 1 ;
+    copa:golsVisitante 0 ;
+    copa:publico 45522 ;
+    copa:vencedora copa:selecao_MEX ;
+    copa:sediadaEm copa:estadio_estadio_akron .
+
+copa:partida_a5_cze_mex a copa:PartidaFaseGrupos ;
+    rdfs:label "Fase de grupos: Chéquia 0-3 México" ;
+    copa:dataPartida "2026-06-24"^^xsd:date ;
+    copa:mandante copa:selecao_CZE ;
+    copa:visitante copa:selecao_MEX ;
+    copa:golsMandante 0 ;
+    copa:golsVisitante 3 ;
+    copa:publico 80824 ;
+    copa:vencedora copa:selecao_MEX ;
+    copa:sediadaEm copa:estadio_estadio_azteca .
+
+copa:partida_a6_rsa_kor a copa:PartidaFaseGrupos ;
+    rdfs:label "Fase de grupos: África do Sul 1-0 Coreia do Sul" ;
+    copa:dataPartida "2026-06-24"^^xsd:date ;
+    copa:mandante copa:selecao_RSA ;
+    copa:visitante copa:selecao_KOR ;
+    copa:golsMandante 1 ;
+    copa:golsVisitante 0 ;
+    copa:publico 51243 ;
+    copa:vencedora copa:selecao_RSA ;
+    copa:sediadaEm copa:estadio_estadio_bbva .
+
+# Designacao de arbitragem (26 arbitros para as 38 partidas).
+
+copa:arbitro_joao_pinheiro copa:apitou copa:partida_r32_1_rsa_can .
+copa:arbitro_maurizio_mariani copa:apitou copa:partida_r32_2_bra_jpn .
+copa:arbitro_jalal_jayed copa:apitou copa:partida_r32_3_ger_par .
+copa:arbitro_wilton_sampaio copa:apitou copa:partida_r32_4_ned_mar .
+copa:arbitro_jesus_valenzuela copa:apitou copa:partida_r32_5_civ_nor .
+copa:arbitro_danny_makkelie copa:apitou copa:partida_r32_6_fra_swe .
+copa:arbitro_slavko_vincic copa:apitou copa:partida_r32_7_mex_ecu .
+copa:arbitro_adham_makhadmeh copa:apitou copa:partida_r32_8_eng_cod .
+copa:arbitro_said_martinez copa:apitou copa:partida_r32_9_bel_sen .
+copa:arbitro_raphael_claus copa:apitou copa:partida_r32_10_usa_bih .
+copa:arbitro_glenn_nyberg copa:apitou copa:partida_r32_11_esp_aut .
+copa:arbitro_espen_eskas copa:apitou copa:partida_r32_12_por_cro .
+copa:arbitro_yael_falcon copa:apitou copa:partida_r32_13_sui_alg .
+copa:arbitro_gustavo_tejera copa:apitou copa:partida_r32_14_aus_egy .
+copa:arbitro_drew_fischer copa:apitou copa:partida_r32_15_arg_cpv .
+copa:arbitro_clement_turpin copa:apitou copa:partida_r32_16_col_gha .
+copa:arbitro_michael_oliver copa:apitou copa:partida_r16_1_can_mar .
+copa:arbitro_ilgiz_tantashev copa:apitou copa:partida_r16_2_par_fra .
+copa:arbitro_ismail_elfath copa:apitou copa:partida_r16_3_bra_nor .
+copa:arbitro_alireza_faghani copa:apitou copa:partida_r16_4_mex_eng .
+copa:arbitro_anthony_taylor copa:apitou copa:partida_r16_5_por_esp .
+copa:arbitro_adham_makhadmeh copa:apitou copa:partida_r16_6_usa_bel .
+copa:arbitro_francois_letexier copa:apitou copa:partida_r16_7_arg_egy .
+copa:arbitro_ivan_barton copa:apitou copa:partida_r16_8_sui_col .
+copa:arbitro_facundo_tello copa:apitou copa:partida_qf1_fra_mar .
+copa:arbitro_michael_oliver copa:apitou copa:partida_qf2_esp_bel .
+copa:arbitro_clement_turpin copa:apitou copa:partida_qf3_nor_eng .
+copa:arbitro_joao_pinheiro copa:apitou copa:partida_qf4_arg_sui .
+copa:arbitro_ivan_barton copa:apitou copa:partida_sf1_fra_esp .
+copa:arbitro_ismail_elfath copa:apitou copa:partida_sf2_eng_arg .
+copa:arbitro_jesus_valenzuela copa:apitou copa:partida_3rd_fra_eng .
+copa:arbitro_slavko_vincic copa:apitou copa:partida_final_esp_arg .
+copa:arbitro_wilton_sampaio copa:apitou copa:partida_a1_mex_rsa .
+copa:arbitro_amin_omar copa:apitou copa:partida_a2_kor_cze .
+copa:arbitro_tori_penso copa:apitou copa:partida_a3_cze_rsa .
+copa:arbitro_gustavo_tejera copa:apitou copa:partida_a4_mex_kor .
+copa:arbitro_yael_falcon copa:apitou copa:partida_a5_cze_mex .
+copa:arbitro_facundo_tello copa:apitou copa:partida_a6_rsa_kor .
