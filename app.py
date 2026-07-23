@@ -97,8 +97,8 @@ st.sidebar.caption(
 if secao == "Visão geral":
     st.title("Base de conhecimento da Copa do Mundo FIFA 2026")
     st.markdown(
-        "Modelada em **RDF/RDFS/OWL**, entregue em Turtle e consultada com "
-        "**rdflib** e **SPARQL**. Dados reais, extraídos da Wikipédia."
+        "Modelada em RDF/RDFS/OWL, entregue em Turtle e consultada com rdflib "
+        "e SPARQL. Dados reais, extraídos da Wikipédia."
     )
 
     g = grafo_puro()
@@ -117,8 +117,8 @@ if secao == "Visão geral":
     c4.metric("Instâncias · mín. 25", len(inst))
 
     st.info(
-        f"Depois do reasoner o grafo vai de **{len(g)}** para **{len(gi)}** triplas — "
-        f"**{len(gi) - len(g)} fatos derivados** que ninguém escreveu.",
+        f"Após o reasoner: **{len(g)} → {len(gi)}** triplas "
+        f"({len(gi) - len(g)} inferidas).",
         icon="🧠",
     )
 
@@ -135,15 +135,13 @@ if secao == "Visão geral":
         )
     with dir_:
         st.markdown(
-            "**Recorte deliberado**\n\n"
-            "- **38 partidas** de 104: todo o mata-mata (16-avos até a final) "
-            "mais o Grupo A completo\n"
-            "- **208 jogadores**: os elencos oficiais de 26 convocados de "
-            "8 seleções — as 4 semifinalistas mais Brasil, Noruega, Marrocos e México"
+            "**Recorte**\n\n"
+            "- **38 partidas** de 104: o mata-mata inteiro mais o Grupo A\n"
+            "- **208 jogadores**: os elencos de 26 convocados de 8 seleções — "
+            "as 4 semifinalistas mais Brasil, Noruega, Marrocos e México"
         )
     st.caption(
-        "As 8 seleções com elenco são as que aparecem nas partidas modeladas, "
-        "então consultas que cruzam jogador → seleção → partida devolvem resultado."
+        "As 8 seleções com elenco são as que jogam as partidas modeladas."
     )
 
     st.subheader("Instâncias por classe")
@@ -167,9 +165,8 @@ if secao == "Visão geral":
             "- `2026 FIFA World Cup round of 32` / `knockout stage` / `final` — partidas\n"
             "- `2026 FIFA World Cup Group A` — partidas da fase de grupos\n"
             "- `Template:2026 FIFA World Cup group tables` — os 12 grupos\n\n"
-            "Onde a fonte não confirmava um valor, a tripla foi **omitida** em vez de "
-            "estimada — é o caso de `copa:vencedora` no empate de Chéquia 1×1 África "
-            "do Sul, que não teve pênaltis."
+            "Onde a fonte não confirmava um valor, a tripla foi omitida — é o caso "
+            "de `copa:vencedora` no empate Chéquia 1×1 África do Sul, sem pênaltis."
         )
 
 
@@ -179,7 +176,7 @@ if secao == "Visão geral":
 
 elif secao == "Taxonomia":
     st.title("Taxonomia")
-    st.markdown("O domínio se organiza em **quatro raízes independentes**.")
+    st.markdown("Quatro raízes independentes.")
 
     esq, dir_ = st.columns(2)
 
@@ -197,8 +194,8 @@ elif secao == "Taxonomia":
             language=None,
         )
         st.caption(
-            "A posição em campo é **subclasse**, não atributo: \"liste os goleiros\" "
-            "vira consulta por tipo, e todo Goleiro também é Jogador e Pessoa."
+            "A posição é subclasse, não atributo: \"liste os goleiros\" vira consulta "
+            "por tipo, e todo Goleiro também é Jogador e Pessoa."
         )
 
         st.subheader("Local")
@@ -211,8 +208,8 @@ elif secao == "Taxonomia":
             language=None,
         )
         st.caption(
-            "Só os elos curtos são escritos: estádio → cidade, cidade → país. "
-            "O vínculo estádio → país vem da transitividade."
+            "Só os elos curtos são escritos. O vínculo estádio → país vem da "
+            "transitividade."
         )
 
     with dir_:
@@ -230,9 +227,8 @@ elif secao == "Taxonomia":
             language=None,
         )
         st.caption(
-            "A fase do torneio é a classe da partida. Com 48 seleções, o mata-mata "
-            "de 2026 começa nos **16-avos**, não nas oitavas. "
-            "`PartidaMataMata` é declarada `owl:equivalentClass` de "
+            "A fase é a classe da partida. Com 48 seleções o mata-mata começa nos "
+            "16-avos. `PartidaMataMata` é `owl:equivalentClass` de "
             "`PartidaEliminatoria`."
         )
 
@@ -246,8 +242,8 @@ elif secao == "Taxonomia":
             language=None,
         )
         st.caption(
-            "`Semifinalista` não tem instância no arquivo: é povoada em execução "
-            "pela regra INSERT da consulta 8."
+            "`Semifinalista` não tem instância no arquivo: é povoada pela regra "
+            "INSERT da consulta 8."
         )
 
     st.divider()
@@ -267,9 +263,9 @@ elif secao == "Taxonomia":
         "`posicaoNoGrupo` · `codigoFIFA`"
     )
     st.caption(
-        "Todas as 26 declaram `rdfs:domain` e `rdfs:range`. Os rótulos usam "
-        "`rdfs:label`, sem domain: dois `rdfs:domain` na mesma propriedade "
-        "significariam **interseção** de classes, não união."
+        "Todas as 26 declaram `rdfs:domain` e `rdfs:range`. Dois `rdfs:domain` na "
+        "mesma propriedade significariam interseção de classes, não união — por "
+        "isso os rótulos usam `rdfs:label`."
     )
 
 
@@ -292,7 +288,7 @@ elif secao == "Inferência OWL":
     if demo == "owl:inverseOf":
         st.markdown(
             "O arquivo escreve só o sentido jogador → seleção (`copa:jogaPor`). "
-            "Não existe **uma tripla sequer** de `copa:temJogador` no `.ttl`."
+            "Nenhuma tripla `copa:temJogador` existe no `.ttl`."
         )
         consulta = """
         PREFIX copa: <http://ufpb.br/sbc/copa2026#>
@@ -308,8 +304,8 @@ elif secao == "Inferência OWL":
 
     elif demo == "owl:TransitiveProperty":
         st.markdown(
-            "Só os elos curtos são escritos: estádio → cidade e cidade → país. "
-            "Nenhuma tripla liga estádio a país diretamente."
+            "O arquivo liga estádio → cidade e cidade → país. Nenhuma tripla liga "
+            "estádio a país."
         )
         consulta = """
         PREFIX copa: <http://ufpb.br/sbc/copa2026#>
@@ -326,7 +322,7 @@ elif secao == "Inferência OWL":
     else:
         st.markdown(
             "O CONSTRUCT monta os confrontos só no sentido mandante → visitante. "
-            "Na final a Espanha era a mandante, então só foi escrita ESP → ARG."
+            "Na final a Espanha era mandante, então só existe ESP → ARG."
         )
         consulta = """
         PREFIX copa: <http://ufpb.br/sbc/copa2026#>
@@ -366,7 +362,7 @@ elif secao == "Inferência OWL":
                              height=min(400, 40 + 35 * len(linhas)))
             else:
                 st.error(f"**{titulo}** — 0 resultados")
-                st.caption("A base, sozinha, não sabe responder.")
+                st.caption("A base, sozinha, não responde.")
 
     st.divider()
     st.subheader("As 7 construções OWL")
@@ -378,14 +374,14 @@ elif secao == "Inferência OWL":
              "para quê": "estádio → cidade → país sem duplicar vínculo"},
             {"construção": "owl:SymmetricProperty", "onde": "enfrentou",
              "para quê": "se A enfrentou B, B enfrentou A"},
-            {"construção": "owl:FunctionalProperty", "onde": "sediadaEm, treina, e outras",
-             "para quê": "cada uma tem no máximo um valor"},
+            {"construção": "owl:FunctionalProperty", "onde": "sediadaEm, treina e outras",
+             "para quê": "no máximo um valor por sujeito"},
             {"construção": "owl:InverseFunctionalProperty", "onde": "codigoFIFA",
-             "para quê": "\"BRA\" é chave global: identifica a seleção entre bases"},
+             "para quê": "chave global: \"BRA\" identifica a seleção entre bases"},
             {"construção": "owl:disjointWith", "onde": "9 pares de classes",
-             "para quê": "ninguém é goleiro e atacante — erro fica detectável"},
+             "para quê": "ninguém é goleiro e atacante"},
             {"construção": "owl:equivalentClass", "onde": "MataMata ≡ Eliminatoria",
-             "para quê": "integrar base externa que use o outro termo"},
+             "para quê": "integrar base que use o outro termo"},
         ],
         width="stretch", hide_index=True,
     )
@@ -398,8 +394,7 @@ elif secao == "Inferência OWL":
 elif secao == "Parte 1 — g.triples()":
     st.title("Parte 1 — consultas com `g.triples()`")
     st.markdown(
-        "Sete consultas cobrindo as combinações do padrão "
-        "(sujeito, predicado, objeto), com `None` como coringa."
+        "Combinações do padrão (sujeito, predicado, objeto), com `None` como coringa."
     )
 
     rotulos = [
@@ -427,8 +422,8 @@ elif secao == "Parte 1 — g.triples()":
 elif secao == "Parte 2 — SPARQL":
     st.title("Parte 2 — consultas SPARQL")
     st.markdown(
-        "**SELECT** (com FILTER, ORDER BY, agregação e OPTIONAL), **CONSTRUCT**, "
-        "**ASK** e as **três formas de Update**."
+        "SELECT (com FILTER, ORDER BY, agregação e OPTIONAL), CONSTRUCT, ASK e as "
+        "três formas de Update."
     )
 
     rotulos = [
@@ -448,8 +443,7 @@ elif secao == "Parte 2 — SPARQL":
 
     if escolha >= 5:
         st.warning(
-            "Altera o grafo. Roda sobre uma cópia em memória; "
-            "`data/copa2026.ttl` não é modificado.",
+            "Altera o grafo. Roda sobre uma cópia; `data/copa2026.ttl` não muda.",
             icon="✏️",
         )
 
@@ -521,7 +515,7 @@ ORDER BY DESC(?selecoes)""",
 
     usar_reasoner = st.toggle(
         "Consultar o grafo com inferência", value=True,
-        help="Desligado, consulta apenas as triplas escritas no arquivo .ttl.",
+        help="Desligado, consulta só as triplas escritas no arquivo.",
     )
 
     if st.button("Executar", type="primary"):
