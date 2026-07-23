@@ -1,20 +1,7 @@
-"""Parte 1 - Consultas com g.triples() (API de padroes de tripla do rdflib).
+"""Parte 1 - Consultas com g.triples(), a API de padroes de tripla do rdflib.
 
-Sao 7 consultas que percorrem todas as combinacoes possiveis do padrao
-(sujeito, predicado, objeto), usando None como coringa:
-
-    1. (S, None, None)      sujeito fixo
-    2. (None, P, None)      predicado fixo
-    3. (None, P, O)         predicado e objeto fixos
-    4. (S, P, None)         sujeito e predicado fixos
-    5. (None, P, O)         predicado e objeto fixos (outro uso: filtro por valor)
-    6. (S, P, O)            os tres fixos - teste de existencia
-    7. (None, None, O)      objeto fixo
-
-Cada funcao declara, no proprio docstring, O QUE BUSCA e o RESULTADO ESPERADO.
-
-Todas rodam sobre o grafo JA EXPANDIDO pelo reasoner, entao algumas devolvem
-triplas que nao existem no arquivo .ttl (ver consulta 4).
+Sete consultas cobrindo as combinacoes do padrao (sujeito, predicado, objeto),
+com None como coringa. Rodam sobre o grafo ja expandido pelo reasoner.
 """
 
 from rdflib import RDF
@@ -24,10 +11,11 @@ from base import COPA
 
 
 def consulta_1(g):
-    """BUSCA: todas as triplas cujo sujeito e a selecao da Espanha - padrao (S, None, None).
+    """Padrao (S, None, None).
 
-    ESPERADO: o cartao completo da campea: rotulo, codigo FIFA, grupo, colocacao
-    na chave, confederacao e - so por inferencia - os 26 jogadores do elenco.
+    Busca: todas as triplas cujo sujeito e a selecao da Espanha.
+    Esperado: rotulo, codigo FIFA, grupo, colocacao, confederacao e os 26
+    jogadores do elenco (estes ultimos vindos da inferencia).
     """
     util.consulta(
         "Parte 1", 1,
@@ -43,9 +31,10 @@ def consulta_1(g):
 
 
 def consulta_2(g):
-    """BUSCA: todos os estadios e suas capacidades - padrao (None, P, None).
+    """Padrao (None, P, None).
 
-    ESPERADO: 16 estadios, do Azteca (80.824) ao BMO Field (43.036).
+    Busca: todos os estadios e suas capacidades.
+    Esperado: 16 estadios, do Azteca (80.824) ao BMO Field (43.036).
     """
     util.consulta(
         "Parte 1", 2,
@@ -62,9 +51,10 @@ def consulta_2(g):
 
 
 def consulta_3(g):
-    """BUSCA: todos os recursos do tipo Goleiro - padrao (None, rdf:type, O).
+    """Padrao (None, rdf:type, O).
 
-    ESPERADO: os goleiros dos 8 elencos modelados (3 por selecao = 24).
+    Busca: os recursos do tipo Goleiro.
+    Esperado: 24 goleiros, 3 em cada um dos 8 elencos modelados.
     """
     util.consulta(
         "Parte 1", 3,
@@ -83,12 +73,11 @@ def consulta_3(g):
 
 
 def consulta_4(g):
-    """BUSCA: o elenco da Espanha - padrao (S, P, None).
+    """Padrao (S, P, None).
 
-    ESPERADO: 26 jogadores. O ponto desta consulta e que NENHUMA tripla
-    copa:temJogador existe no arquivo .ttl - o arquivo so tem o sentido
-    jogador -> selecao (copa:jogaPor). Estes 26 resultados sao produzidos pelo
-    reasoner a partir de `copa:jogaPor owl:inverseOf copa:temJogador`.
+    Busca: o elenco da Espanha por copa:temJogador.
+    Esperado: 26 jogadores, todos inferidos - o arquivo so tem o sentido
+    copa:jogaPor, e a inversa e derivada pelo reasoner.
     """
     util.consulta(
         "Parte 1", 4,
@@ -104,16 +93,14 @@ def consulta_4(g):
                        util.rotulo(g, jogador), util.curto(clube)])
     linhas.sort()
     util.tabela(["camisa", "jogador", "clube"], linhas, limite=10)
-    util.nota(
-        "Nenhuma destas triplas esta no .ttl: todas vieram de owl:inverseOf.\n"
-        "Sem o reasoner, esta consulta devolveria zero linhas."
-    )
+    util.nota("Sem o reasoner, esta consulta devolveria zero linhas.")
 
 
 def consulta_5(g):
-    """BUSCA: quais selecoes caíram no Grupo A - padrao (None, P, O).
+    """Padrao (None, P, O).
 
-    ESPERADO: as 4 selecoes do Grupo A - Mexico, Africa do Sul, Coreia do Sul e Chequia.
+    Busca: as selecoes sorteadas no Grupo A.
+    Esperado: Mexico, Africa do Sul, Coreia do Sul e Chequia, nessa ordem.
     """
     util.consulta(
         "Parte 1", 5,
@@ -132,10 +119,10 @@ def consulta_5(g):
 
 
 def consulta_6(g):
-    """BUSCA: a Espanha foi a mandante da final? - padrao (S, P, O), tudo fixo.
+    """Padrao (S, P, O), sem coringa.
 
-    ESPERADO: True. Um padrao totalmente fechado funciona como teste de
-    existencia - o equivalente, na API de triplas, ao ASK do SPARQL.
+    Busca: se a Espanha foi a mandante da final.
+    Esperado: True. Com os tres termos fixos o padrao vira teste de existencia.
     """
     util.consulta(
         "Parte 1", 6,
@@ -146,17 +133,15 @@ def consulta_6(g):
     existe = (COPA.partida_final_esp_arg, COPA.mandante, COPA.selecao_ESP) in g
     print(f"  Resposta: {existe}")
 
-    # contraprova com um fato falso, para mostrar que o teste discrimina
     falso = (COPA.partida_final_esp_arg, COPA.mandante, COPA.selecao_BRA) in g
     print(f"  Contraprova (o Brasil foi mandante da final?): {falso}")
 
 
 def consulta_7(g):
-    """BUSCA: tudo que aponta para o MetLife Stadium - padrao (None, None, O).
+    """Padrao (None, None, O).
 
-    ESPERADO: as partidas sediadas la (incluindo a final) via copa:sediadaEm.
-    E o unico padrao que varre o grafo pelo objeto, respondendo 'quem se
-    relaciona com este recurso?' sem saber por qual propriedade.
+    Busca: tudo que aponta para o MetLife Stadium, qualquer que seja a propriedade.
+    Esperado: as partidas sediadas la, entre elas a final.
     """
     util.consulta(
         "Parte 1", 7,

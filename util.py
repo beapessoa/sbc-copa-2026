@@ -1,8 +1,4 @@
-"""Funcoes de formatacao da saida no terminal.
-
-Mantidas separadas das consultas para que consultas_triples.py e
-consultas_sparql.py contenham apenas a logica de consulta.
-"""
+"""Formatacao da saida no terminal."""
 
 from rdflib import Literal, URIRef
 from rdflib.namespace import RDFS
@@ -11,7 +7,7 @@ LARGURA = 92
 
 
 def banner(texto):
-    """Cabecalho de bloco (usado para as grandes etapas do programa)."""
+    """Cabecalho das grandes etapas do programa."""
     print()
     print("=" * LARGURA)
     print(texto.center(LARGURA))
@@ -26,7 +22,7 @@ def secao(texto):
 
 
 def consulta(parte, numero, titulo, proposito, detalhe=None):
-    """Cabecalho de uma consulta: numero + proposito, como pede o enunciado."""
+    """Cabecalho de uma consulta: numero, titulo e proposito."""
     print()
     print(f"[{parte} | Consulta {numero}] {titulo}")
     print(f"  Proposito: {proposito}")
@@ -41,7 +37,7 @@ def nota(texto):
 
 
 def curto(termo):
-    """Encolhe URIs e literais para leitura no terminal."""
+    """Encolhe URIs e literais para caber no terminal."""
     if isinstance(termo, URIRef):
         s = str(termo)
         for sep in ("#", "/"):
@@ -56,14 +52,14 @@ def curto(termo):
 
 
 def rotulo(g, recurso):
-    """rdfs:label do recurso; cai para o nome curto da URI se nao houver."""
+    """rdfs:label do recurso, ou o nome curto da URI se nao houver."""
     for r in g.objects(recurso, RDFS.label):
         return str(r)
     return curto(recurso)
 
 
 def tabela(cabecalhos, linhas, limite=None):
-    """Imprime uma tabela alinhada. `limite` corta a exibicao e avisa quanto sobrou."""
+    """Tabela alinhada. `limite` corta a exibicao e avisa quanto sobrou."""
     linhas = [[("-" if c is None else str(c)) for c in linha] for linha in linhas]
     total = len(linhas)
     cortadas = 0
@@ -95,7 +91,7 @@ def tabela(cabecalhos, linhas, limite=None):
 
 
 def checagem(descricao, valor, minimo=None, esperado=None):
-    """Imprime uma verificacao de requisito com OK/FALHA. Devolve o booleano."""
+    """Verificacao de requisito com OK/FALHA. Devolve o booleano."""
     if minimo is not None:
         ok = valor >= minimo
         alvo = f"minimo {minimo}"

@@ -34,9 +34,9 @@ pip install -r requirements.txt
 python main.py
 ```
 
-O programa carrega a base, confere na tela todos os requisitos mínimos do enunciado,
-aplica o reasoner e executa as 17 consultas (7 com `g.triples()` e 10 em SPARQL),
-identificando cada uma pelo número e pelo propósito.
+O programa carrega a base, confere na tela os requisitos mínimos do enunciado, aplica
+o reasoner e executa as 17 consultas (7 com `g.triples()` e 10 em SPARQL), identificando
+cada uma pelo número e pelo propósito.
 
 A saída completa de uma execução está gravada em [`saida_exemplo.txt`](saida_exemplo.txt).
 
@@ -44,9 +44,8 @@ A saída completa de uma execução está gravada em [`saida_exemplo.txt`](saida
 
 ### Interface visual (extra, opcional)
 
-Além da execução no terminal, há uma interface em Streamlit usada para apresentar
-o projeto. Ela **não faz parte da entrega** e não altera nada: reaproveita os mesmos
-módulos de consulta e não toca no `.ttl`.
+Há também uma interface em Streamlit, usada para apresentar o projeto. Ela reaproveita
+os mesmos módulos de consulta e não toca no `.ttl`.
 
 ```bash
 pip install -r requirements-app.txt
@@ -56,9 +55,9 @@ pip install -r requirements-app.txt
 streamlit run app.py
 ```
 
-Tem seis seções: visão geral com as métricas da base, a taxonomia, uma demonstração
-interativa da inferência OWL (a mesma consulta com e sem o reasoner, lado a lado), as
-consultas da Parte 1, as da Parte 2 e um campo para escrever SPARQL livremente.
+Seis seções: métricas da base, taxonomia, a inferência OWL demonstrada com a mesma
+consulta rodando com e sem o reasoner lado a lado, as consultas da Parte 1, as da
+Parte 2 e um campo para SPARQL livre.
 
 ### Arquivos
 
@@ -70,7 +69,7 @@ consultas da Parte 1, as da Parte 2 e um campo para escrever SPARQL livremente.
 | [`consultas_triples.py`](consultas_triples.py) | Parte 1 — 7 consultas com `g.triples()` |
 | [`consultas_sparql.py`](consultas_sparql.py) | Parte 2 — 10 consultas SPARQL |
 | [`util.py`](util.py) | Formatação da saída no terminal |
-| [`app.py`](app.py) | Interface Streamlit — extra opcional, fora da entrega |
+| [`app.py`](app.py) | Interface Streamlit para a apresentação |
 
 ---
 
@@ -91,8 +90,7 @@ México entre 11 de junho e 19 de julho de 2026, vencida pela **Espanha**, que b
 | Instâncias | **381** | 25 |
 | Construções OWL distintas | **7** | 5 |
 
-Após o reasoner, o grafo passa de **2.904 para 6.531 triplas** — 3.627 fatos derivados
-que ninguém escreveu.
+Após o reasoner, o grafo passa de **2.904 para 6.531 triplas**: 3.627 fatos derivados.
 
 ### Instâncias por classe
 
@@ -120,21 +118,19 @@ Todos os dados são **reais**, transcritos da Wikipédia em julho de 2026:
 - `Template:2026 FIFA World Cup group tables` — composição e classificação dos 12 grupos
 
 Cinco dimensões entram **completas**: as 48 seleções, os 12 grupos, os 16 estádios,
-as 16 cidades-sede e as 4 posições em campo.
-
-Duas são recorte deliberado, porque o enunciado adverte contra *inflar a base*:
+as 16 cidades-sede e as 4 posições em campo. Duas são recorte:
 
 - **Partidas (38 de 104):** todo o mata-mata — 16 jogos de 16-avos, 8 oitavas, 4 quartas,
   2 semifinais, a disputa do 3º lugar e a final — mais o Grupo A completo como amostra da
   fase de grupos. Isso popula todas as sete subclasses de `Partida`.
 - **Jogadores (208 de 1.248):** os elencos oficiais completos, de 26 convocados cada, de
   8 seleções — Espanha, Argentina, Inglaterra e França (as semifinalistas) mais Brasil,
-  Noruega, Marrocos e México. São exatamente as seleções que aparecem nas partidas
-  modeladas, então toda consulta que cruza jogador → seleção → partida devolve resultado.
+  Noruega, Marrocos e México. São as seleções que aparecem nas partidas modeladas, então
+  consultas que cruzam jogador → seleção → partida devolvem resultado.
 
 Onde a fonte não confirmava um valor, a tripla foi **omitida** em vez de estimada — é o
 caso de `copa:vencedora` no empate de Chéquia 1 × 1 África do Sul, que não teve pênaltis.
-Essa ausência é justamente o que torna o `OPTIONAL` da consulta 5 necessário.
+É essa ausência que torna necessário o `OPTIONAL` da consulta 5.
 
 ---
 
@@ -145,8 +141,8 @@ O domínio se organiza em quatro raízes independentes.
 ### Pessoa
 
 Quem participa do torneio. A posição em campo declarada pela FIFA (GK/DF/MF/FW) vira
-subclasse de `Jogador`, e não um atributo — assim, "liste os goleiros" é uma consulta por
-tipo, e o reasoner sabe que todo `Goleiro` também é `Jogador` e `Pessoa`.
+subclasse de `Jogador`, e não atributo: "liste os goleiros" é uma consulta por tipo, e
+todo `Goleiro` também é `Jogador` e `Pessoa`.
 
 ```
 Pessoa
@@ -161,8 +157,8 @@ Pessoa
 
 ### Local
 
-Cadeia geográfica em elos curtos: cada estádio aponta para sua cidade-sede, cada cidade
-aponta para seu país. O vínculo estádio → país **nunca é escrito** — vem da transitividade.
+Cada estádio aponta para sua cidade-sede, cada cidade para seu país. O vínculo
+estádio → país **não é escrito**: vem da transitividade.
 
 ```
 Local
@@ -196,9 +192,8 @@ Selecao                Grupo (A–L)        Confederacao
 └── Semifinalista                         (UEFA, CONMEBOL, CONCACAF, CAF, AFC, OFC)
 ```
 
-`Semifinalista` é uma **classe derivada**: não tem instância no arquivo. Ela é povoada em
-tempo de execução pela regra `INSERT ... WHERE` da consulta 8, a partir de quem disputou
-uma `PartidaSemifinal`.
+`Semifinalista` é uma **classe derivada**, sem instância no arquivo: é povoada em execução
+pela regra `INSERT ... WHERE` da consulta 8.
 
 ### Propriedades
 
@@ -209,25 +204,25 @@ uma `PartidaSemifinal`.
 `golsPelaSelecao`, `paisDeOrigem`, `capacidade`, `dataPartida`, `golsMandante`,
 `golsVisitante`, `publico`, `letraGrupo`, `posicaoNoGrupo`, `codigoFIFA`.
 
-Todas as 26 declaram `rdfs:domain` e `rdfs:range`. Os rótulos legíveis usam `rdfs:label`,
-sem domain declarado — dois `rdfs:domain` na mesma propriedade significariam **interseção**
-de classes, não união, que é um erro comum de modelagem.
+Todas as 26 declaram `rdfs:domain` e `rdfs:range`. Os rótulos usam `rdfs:label`, sem
+domain: dois `rdfs:domain` na mesma propriedade significariam **interseção** de classes,
+não união.
 
 ---
 
 ## 4. As 7 construções OWL e por que cada uma existe
 
-Nenhuma é decorativa: o `main.py` demonstra o efeito de todas na saída.
+O `main.py` demonstra o efeito de cada uma na saída.
 
 | Construção | Onde | Justificativa no domínio |
 |---|---|---|
-| `owl:inverseOf` | `jogaPor` ⁻¹ `temJogador` | A convocação é um fato só, visto de dois lados. O arquivo escreve apenas jogador → seleção; o elenco de cada seleção é **inferido**. Não existe uma única tripla `temJogador` no `.ttl`. |
-| `owl:TransitiveProperty` | `localizadoEm` | Estádio → cidade → país. "Em que país fica este estádio?" é respondido por inferência, sem duplicar o vínculo em cada um dos 16 estádios. |
-| `owl:SymmetricProperty` | `enfrentou` | Se A enfrentou B, B enfrentou A. O CONSTRUCT da consulta 6 emite só o sentido mandante → visitante; a direção inversa aparece sozinha. |
+| `owl:inverseOf` | `jogaPor` ⁻¹ `temJogador` | O arquivo escreve só o sentido jogador → seleção; o elenco de cada seleção é **inferido**. Não existe uma única tripla `temJogador` no `.ttl`. |
+| `owl:TransitiveProperty` | `localizadoEm` | Estádio → cidade → país, sem repetir o vínculo com o país em cada um dos 16 estádios. |
+| `owl:SymmetricProperty` | `enfrentou` | Se A enfrentou B, B enfrentou A. O CONSTRUCT da consulta 6 emite só o sentido mandante → visitante; a inversa é derivada. |
 | `owl:FunctionalProperty` | `sediadaEm`, `treina`, `dataPartida`, `numeroCamisa`, `pertenceAoGrupo`, `filiadaA`, `vencedora`, entre outras | Cada uma tem no máximo um valor: uma partida ocorre em um estádio, numa data; um técnico comanda uma seleção; um jogador usa um número. |
 | `owl:InverseFunctionalProperty` | `codigoFIFA` | "BRA" identifica unicamente uma seleção. É uma chave global: duas bases que usem o mesmo código falam da mesma seleção, e o reasoner deriva `owl:sameAs`. |
-| `owl:disjointWith` | 9 pares entre as posições, `Jogador`, `Tecnico` e `Arbitro` | Ninguém é goleiro e atacante, nem jogador e árbitro da mesma competição. Torna esse erro de dado **detectável**, coisa que RDFS sozinho não expressa. |
-| `owl:equivalentClass` | `PartidaMataMata` ≡ `PartidaEliminatoria` | Os dois termos circulam na imprensa e nos documentos da FIFA. A equivalência permite integrar uma base externa que use o outro nome sem reescrever dado nenhum. |
+| `owl:disjointWith` | 9 pares entre as posições, `Jogador`, `Tecnico` e `Arbitro` | Ninguém é goleiro e atacante, nem jogador e árbitro da mesma competição. Torna esse erro **detectável**, o que RDFS sozinho não expressa. |
+| `owl:equivalentClass` | `PartidaMataMata` ≡ `PartidaEliminatoria` | Os dois termos circulam na imprensa e nos documentos da FIFA. A equivalência integra uma base que use o outro nome sem reescrever dado. |
 
 ### A prova de que a inferência funciona
 
@@ -238,7 +233,7 @@ ANTES do reasoner:       copa:selecao_ESP copa:temJogador ?j  ->  0 resultado(s)
 DEPOIS do reasoner:      copa:selecao_ESP copa:temJogador ?j  ->  26 resultado(s)
 ```
 
-De 0 para 26 sem que uma linha do arquivo tenha mudado.
+De 0 para 26 sem nenhuma mudança no arquivo.
 
 ---
 
@@ -246,8 +241,8 @@ De 0 para 26 sem que uma linha do arquivo tenha mudado.
 
 ### Parte 1 — `g.triples()` (7 consultas)
 
-Percorrem todas as combinações do padrão (sujeito, predicado, objeto) com `None` como
-coringa. Cada função declara no próprio docstring **o que busca** e o **resultado esperado**.
+Cobrem as combinações do padrão (sujeito, predicado, objeto) com `None` como coringa.
+Cada função declara no docstring **o que busca** e o **resultado esperado**.
 
 | # | Padrão | Pergunta |
 |---|---|---|
@@ -274,21 +269,21 @@ coringa. Cada função declara no próprio docstring **o que busca** e o **resul
 | 9 | **DELETE ... WHERE** | Cortar um jogador do elenco |
 | 10 | **DELETE/INSERT ... WHERE** | Trocar o técnico de uma seleção |
 
-As três consultas de UPDATE imprimem o estado **antes e depois** da operação. Elas atuam
-somente sobre o grafo em memória — `data/copa2026.ttl` nunca é modificado, e reexecutar o
-programa produz sempre a mesma saída.
+As três consultas de UPDATE imprimem o estado **antes e depois**. Atuam somente sobre o
+grafo em memória: `data/copa2026.ttl` não é modificado, e reexecutar o programa produz a
+mesma saída.
 
 As operações das consultas 9 e 10 são **hipotéticas**, criadas para demonstrar as formas de
-`UPDATE`; não descrevem eventos reais do torneio.
+`UPDATE`; não descrevem eventos do torneio.
 
 ---
 
-## 6. Duas observações de modelagem que apareceram na prática
+## 6. Duas observações de modelagem
 
 **Inferência materializada não se retrai sozinha.** A consulta 9 apaga as duas direções da
-convocação de propósito. A tripla `temJogador` foi gravada no grafo pelo reasoner; remover
-apenas o `jogaPor` que a originou deixaria a inferência órfã.
+convocação: `temJogador` foi gravada pelo reasoner, e remover só o `jogaPor` que a originou
+deixaria a inferência órfã.
 
-**Depois do reasoner, `rdfs:subClassOf` também é reflexiva.** Na consulta 1 da Parte 2,
+**Depois do reasoner, `rdfs:subClassOf` é reflexiva.** Na consulta 1 da Parte 2,
 `?posicaoClasse rdfs:subClassOf copa:Jogador` casa com `copa:Jogador` consigo mesma e
 duplicaria cada jogador — daí o `FILTER (?posicaoClasse != copa:Jogador)`.

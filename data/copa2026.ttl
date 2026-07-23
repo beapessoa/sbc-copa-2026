@@ -21,7 +21,6 @@
 # T-BOX 1/3 - HIERARQUIA DE CLASSES (rdfs:subClassOf)
 # ============================================================================
 
-# Raiz 1: PESSOA. Duas ramificacoes de profundidade 2 (Jogador -> posicao).
 
 # Raiz 1 - Pessoa
 
@@ -63,9 +62,6 @@ copa:Arbitro a owl:Class ;
     rdfs:label "Arbitro" ;
     rdfs:subClassOf copa:Pessoa ;
     rdfs:comment "Arbitro principal designado para uma partida." .
-
-# Raiz 2: LOCAL. Cadeia Estadio -> CidadeSede -> Pais sustenta a transitividade
-# de copa:localizadoEm (declarada mais abaixo).
 
 # Raiz 2 - Local
 
@@ -112,7 +108,7 @@ copa:PartidaMataMata a owl:Class ;
 copa:Partida16Avos a owl:Class ;
     rdfs:label "Partida16Avos" ;
     rdfs:subClassOf copa:PartidaMataMata ;
-    rdfs:comment "Primeira rodada eliminatoria; com 48 selecoes o mata-mata comeca nos 16-avos." .
+    rdfs:comment "Primeira rodada eliminatoria: com 48 selecoes o mata-mata comeca aqui." .
 
 copa:PartidaOitavas a owl:Class ;
     rdfs:label "PartidaOitavas" ;
@@ -148,7 +144,7 @@ copa:Selecao a owl:Class ;
 copa:Semifinalista a owl:Class ;
     rdfs:label "Semifinalista" ;
     rdfs:subClassOf copa:Selecao ;
-    rdfs:comment "Classe derivada: nao tem instancia no arquivo. E povoada em tempo de execucao pela regra INSERT ... WHERE da Parte 2, a partir de quem disputou uma copa:PartidaSemifinal." .
+    rdfs:comment "Classe derivada, sem instancia no arquivo: povoada em execucao pela regra INSERT ... WHERE da Parte 2." .
 
 copa:Grupo a owl:Class ;
     rdfs:label "Grupo" ;
@@ -163,23 +159,22 @@ copa:Confederacao a owl:Class ;
 # T-BOX 2/3 - CONSTRUCOES OWL SOBRE CLASSES
 # ============================================================================
 
-# Sao 7 construcoes OWL no total, numeradas de OWL 1 a OWL 7 ao longo do
-# arquivo. As duas que incidem sobre CLASSES ficam aqui; as cinco que incidem
-# sobre PROPRIEDADES ficam na secao seguinte, junto da propriedade afetada.
+# Sao 7 construcoes OWL, numeradas de OWL 1 a OWL 7 ao longo do arquivo.
+# As duas sobre classes ficam aqui; as cinco sobre propriedades ficam na
+# secao seguinte, junto da propriedade afetada.
 
 # OWL 1 - owl:equivalentClass
-# 'Mata-mata' e 'fase eliminatoria' sao o mesmo conceito com nomes diferentes na
-# imprensa e nos documentos da FIFA. Declarar a equivalencia permite que uma base
-# externa que use o outro termo seja integrada sem reescrever dado nenhum.
+# 'Mata-mata' e 'fase eliminatoria' nomeiam o mesmo conceito na imprensa e nos
+# documentos da FIFA. A equivalencia integra uma base que use o outro termo.
 copa:PartidaEliminatoria a owl:Class ;
     rdfs:label "PartidaEliminatoria" ;
     owl:equivalentClass copa:PartidaMataMata ;
     rdfs:comment "Sinonimo de PartidaMataMata usado pela imprensa esportiva." .
 
 # OWL 2 - owl:disjointWith
-# Um mesmo individuo nao pode ocupar duas posicoes em campo, nem ser jogador e
-# arbitro da mesma competicao. A disjuncao torna esse erro de dado detectavel
-# pelo reasoner, coisa que RDFS sozinho nao consegue expressar.
+# Ninguem ocupa duas posicoes em campo, nem e jogador e arbitro da mesma
+# competicao. A disjuncao torna esse erro detectavel pelo reasoner - RDFS
+# sozinho nao expressa isso.
 copa:Goleiro owl:disjointWith copa:Defensor .
 copa:Goleiro owl:disjointWith copa:MeioCampista .
 copa:Goleiro owl:disjointWith copa:Atacante .
@@ -195,11 +190,10 @@ copa:Tecnico owl:disjointWith copa:Arbitro .
 # T-BOX 3/3 - PROPRIEDADES (12 de objeto + 14 de dados)
 # ============================================================================
 
-# Todas as propriedades declaram rdfs:domain e rdfs:range.
-# Lembrete de modelagem: domain/range em RDFS NAO validam dado, eles INFEREM o
-# tipo do sujeito/objeto. Por isso os rotulos legiveis usam rdfs:label, que nao
-# tem domain declarado - dois rdfs:domain na mesma propriedade significariam
-# intersecao de classes, nao uniao.
+# Todas declaram rdfs:domain e rdfs:range. Em RDFS esses construtores nao
+# validam dado, inferem o tipo do sujeito e do objeto.
+# Os rotulos usam rdfs:label, sem domain: dois rdfs:domain numa mesma
+# propriedade significariam intersecao de classes, nao uniao.
 
 
 # --- Propriedades de objeto (12) -------------------------------------------
@@ -214,7 +208,7 @@ copa:temJogador a owl:ObjectProperty ;
     rdfs:label "temJogador" ;
     rdfs:domain copa:Selecao ;
     rdfs:range copa:Jogador ;
-    rdfs:comment "Elenco da selecao. Nao e escrita no arquivo: e inferida de copa:jogaPor." .
+    rdfs:comment "Elenco da selecao. Nao escrita no arquivo: inferida de copa:jogaPor." .
 
 copa:treina a owl:ObjectProperty ,
         owl:FunctionalProperty ;
@@ -263,7 +257,7 @@ copa:vencedora a owl:ObjectProperty ,
     rdfs:label "vencedora" ;
     rdfs:domain copa:Partida ;
     rdfs:range copa:Selecao ;
-    rdfs:comment "Funcional: quem avancou. Ausente nos empates da fase de grupos - por isso as consultas que a usam precisam de OPTIONAL." .
+    rdfs:comment "Funcional: quem avancou. Ausente nos empates da fase de grupos." .
 
 copa:apitou a owl:ObjectProperty ;
     rdfs:label "apitou" ;
@@ -272,15 +266,13 @@ copa:apitou a owl:ObjectProperty ;
     rdfs:comment "Arbitro principal designado para a partida." .
 
 # OWL 3 - owl:inverseOf
-# A convocacao e um fato unico visto de dois angulos. Escrevemos apenas o lado
-# jogador -> selecao (208 triplas); o reasoner deriva o elenco de cada selecao
-# sem que nenhuma tripla copa:temJogador exista no arquivo.
+# So o lado jogador -> selecao e escrito (208 triplas). O reasoner deriva o
+# elenco de cada selecao; nenhuma tripla copa:temJogador existe no arquivo.
 copa:jogaPor owl:inverseOf copa:temJogador .
 
 # OWL 4 - owl:TransitiveProperty
-# Escrevemos so os elos curtos (estadio -> cidade, cidade -> pais). A pergunta
-# 'em que pais fica este estadio?' e respondida por inferencia, nunca por tripla
-# explicita. Sem transitividade seria preciso duplicar o vinculo em cada estadio.
+# So os elos curtos sao escritos: estadio -> cidade, cidade -> pais. Sem a
+# transitividade, o vinculo com o pais teria de ser repetido em cada estadio.
 copa:localizadoEm a owl:ObjectProperty , owl:TransitiveProperty ;
     rdfs:label "localizadoEm" ;
     rdfs:domain copa:Local ;
@@ -288,10 +280,9 @@ copa:localizadoEm a owl:ObjectProperty , owl:TransitiveProperty ;
     rdfs:comment "Transitiva: Estadio -> CidadeSede -> Pais implica Estadio -> Pais." .
 
 # OWL 5 - owl:SymmetricProperty
-# 'Enfrentou' nao tem lado: se A enfrentou B, B enfrentou A. Declarar a simetria
-# evita gravar as duas direcoes. Esta propriedade NAO tem instancia no arquivo -
-# ela e populada em tempo de execucao pela consulta CONSTRUCT, que emite apenas
-# a direcao mandante -> visitante; a direcao inversa aparece so pelo reasoner.
+# Se A enfrentou B, B enfrentou A: a simetria evita gravar as duas direcoes.
+# Sem instancia no arquivo - a consulta CONSTRUCT da Parte 2 emite a direcao
+# mandante -> visitante e o reasoner deriva a inversa.
 copa:enfrentou a owl:ObjectProperty , owl:SymmetricProperty ;
     rdfs:label "enfrentou" ;
     rdfs:domain copa:Selecao ;
@@ -385,10 +376,9 @@ copa:posicaoNoGrupo a owl:DatatypeProperty ,
     rdfs:comment "Colocacao final da selecao na sua chave, de 1 a 4." .
 
 # OWL 6 e 7 - owl:FunctionalProperty + owl:InverseFunctionalProperty
-# O codigo FIFA de tres letras e uma chave global: cada selecao tem exatamente um
-# (funcional) e cada codigo pertence a exatamente uma selecao (inversamente
-# funcional). E o que permite a duas bases distintas reconhecerem que falam da
-# mesma selecao apenas por usarem 'BRA' - o reasoner deriva owl:sameAs.
+# O codigo FIFA e uma chave global: cada selecao tem exatamente um (funcional)
+# e cada codigo pertence a uma so selecao (inversamente funcional). Duas bases
+# que usem 'BRA' falam da mesma selecao, e o reasoner deriva owl:sameAs.
 copa:codigoFIFA a owl:DatatypeProperty ,
         owl:FunctionalProperty ,
         owl:InverseFunctionalProperty ;
@@ -402,8 +392,7 @@ copa:codigoFIFA a owl:DatatypeProperty ,
 # A-BOX 1/6 - GEOGRAFIA: 3 paises, 16 cidades-sede, 16 estadios
 # ============================================================================
 
-# Os elos sao curtos de proposito: estadio -> cidade e cidade -> pais.
-# A ligacao estadio -> pais nunca e escrita; vem da transitividade.
+# A ligacao estadio -> pais nao e escrita; vem da transitividade.
 
 copa:pais_CAN a copa:Pais ; rdfs:label "Canadá" .
 copa:pais_USA a copa:Pais ; rdfs:label "Estados Unidos" .
@@ -531,7 +520,6 @@ copa:grupo_J a copa:Grupo ; rdfs:label "Grupo J" ; copa:letraGrupo "J" .
 copa:grupo_K a copa:Grupo ; rdfs:label "Grupo K" ; copa:letraGrupo "K" .
 copa:grupo_L a copa:Grupo ; rdfs:label "Grupo L" ; copa:letraGrupo "L" .
 
-# Cada selecao traz codigo FIFA, grupo, colocacao final na chave e confederacao.
 
 copa:selecao_ALG a copa:Selecao ;
     rdfs:label "Argélia" ;
@@ -921,8 +909,7 @@ copa:arbitro_yael_falcon a copa:Arbitro ; rdfs:label "Yael Falcón" ; copa:paisD
 # ============================================================================
 
 # A posicao declarada pela FIFA (GK/DF/MF/FW) vira a subclasse de copa:Jogador.
-# Note que NAO existe nenhuma tripla copa:temJogador aqui: o elenco de cada
-# selecao e derivado de copa:jogaPor pela inversa declarada na T-Box.
+# Nao ha triplas copa:temJogador aqui: o elenco vem da inversa de copa:jogaPor.
 
 # Argentina (ARG) - 26 convocados
 
@@ -2818,8 +2805,7 @@ copa:jogador_julian_ryerson a copa:Defensor ;
 # ============================================================================
 
 # 32 partidas do mata-mata (16-avos ate a final) e as 6 do Grupo A.
-# copa:vencedora e omitida no unico empate que nao teve disputa de penaltis -
-# ausencia de dado, nao dado ausente: e o que torna o OPTIONAL necessario.
+# copa:vencedora e omitida no unico empate sem disputa de penaltis.
 
 copa:partida_r32_1_rsa_can a copa:Partida16Avos ;
     rdfs:label "16-avos de final: África do Sul 0-1 Canadá" ;
@@ -3238,7 +3224,7 @@ copa:partida_a6_rsa_kor a copa:PartidaFaseGrupos ;
     copa:vencedora copa:selecao_RSA ;
     copa:sediadaEm copa:estadio_estadio_bbva .
 
-# Designacao de arbitragem (26 arbitros para as 38 partidas).
+# Designacao de arbitragem: 26 arbitros para as 38 partidas.
 
 copa:arbitro_joao_pinheiro copa:apitou copa:partida_r32_1_rsa_can .
 copa:arbitro_maurizio_mariani copa:apitou copa:partida_r32_2_bra_jpn .

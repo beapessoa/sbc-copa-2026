@@ -1,17 +1,13 @@
 """Parte 2 - Consultas SPARQL sobre a mesma base.
 
-Cobertura exigida pelo enunciado:
+    1 a 5   SELECT (com FILTER, ORDER BY, agregacao e OPTIONAL)
+    6       CONSTRUCT
+    7       ASK
+    8       INSERT
+    9       DELETE
+    10      DELETE/INSERT
 
-    SELECT ............ consultas 1 a 5 (1 com FILTER, 1 com ORDER BY,
-                        1 com agregacao GROUP BY/SUM/COUNT/HAVING, 1 com OPTIONAL)
-    CONSTRUCT ......... consulta 6
-    ASK ............... consulta 7
-    INSERT ............ consulta 8
-    DELETE ............ consulta 9
-    DELETE/INSERT ..... consulta 10
-
-As consultas 8, 9 e 10 alteram o grafo EM MEMORIA e imprimem o estado antes e
-depois. O arquivo data/copa2026.ttl nunca e modificado.
+As tres ultimas alteram o grafo em memoria; o arquivo .ttl nao e tocado.
 """
 
 import util
@@ -36,8 +32,7 @@ def consulta_1(g):
     util.consulta(
         "Parte 2", 1,
         "Elenco da Argentina com posicao, camisa e clube",
-        "juntar tres padroes pela variavel compartilhada ?j e ler a posicao do "
-        "jogador a partir da subclasse que ele instancia",
+        "ler a posicao do jogador a partir da subclasse que ele instancia",
     )
     q = PREFIXOS + """
     SELECT ?camisa ?nome ?posicao ?clube
@@ -49,8 +44,8 @@ def consulta_1(g):
            copa:clubeAtual ?clube .
         ?posicaoClasse rdfs:subClassOf copa:Jogador ;
                        rdfs:label ?posicao .
-        # apos o reasoner rdfs:subClassOf tambem e reflexiva, entao copa:Jogador
-        # casaria consigo mesma e duplicaria cada jogador
+        # apos o reasoner rdfs:subClassOf e reflexiva: sem o filtro, copa:Jogador
+        # casaria consigo mesma e duplicaria cada linha
         FILTER (?posicaoClasse != copa:Jogador)
     }
     ORDER BY ?camisa
@@ -67,8 +62,8 @@ def consulta_2(g):
     util.consulta(
         "Parte 2", 2,
         "Estadios grandes fora dos Estados Unidos",
-        "filtrar por capacidade e por pais; o vinculo estadio->pais nao existe no "
-        "arquivo, vem da transitividade de copa:localizadoEm",
+        "filtrar por capacidade e por pais - o vinculo estadio->pais vem da "
+        "transitividade de copa:localizadoEm",
         "Clausulas: FILTER (>) e FILTER NOT EXISTS",
     )
     q = PREFIXOS + """
@@ -97,8 +92,8 @@ def consulta_3(g):
     util.consulta(
         "Parte 2", 3,
         "Caminho da Espanha ate o titulo, em ordem cronologica",
-        "reconstruir a campanha da campea usando um caminho de propriedade para "
-        "chegar do jogo ate o pais",
+        "reconstruir a campanha da campea, chegando do jogo ate o pais por um "
+        "caminho de propriedade",
         "Clausulas: ORDER BY e o caminho copa:sediadaEm/copa:localizadoEm+",
     )
     q = PREFIXOS + """
@@ -126,8 +121,8 @@ def consulta_4(g):
     util.consulta(
         "Parte 2", 4,
         "Artilharia por selecao nas partidas modeladas",
-        "somar os gols que cada selecao marcou, esteja ela como mandante ou como "
-        "visitante, e manter apenas quem fez 5 ou mais",
+        "somar os gols de cada selecao como mandante e como visitante, "
+        "mantendo quem fez 5 ou mais",
         "Clausulas: UNION, GROUP BY, SUM, COUNT, HAVING e ORDER BY",
     )
     q = PREFIXOS + """
@@ -153,8 +148,8 @@ def consulta_5(g):
     util.consulta(
         "Parte 2", 5,
         "Partidas do Grupo A e quem venceu cada uma",
-        "listar as partidas mesmo quando nao ha vencedora registrada - o empate "
-        "sem disputa de penaltis simplesmente nao tem essa tripla",
+        "listar as partidas mesmo sem vencedora registrada - o empate sem "
+        "penaltis nao tem essa tripla",
         "Clausula: OPTIONAL (o equivalente ao LEFT JOIN do SQL)",
     )
     q = PREFIXOS + """
@@ -177,10 +172,7 @@ def consulta_5(g):
           util.curto(l["vencedora"]) if l["vencedora"] else "(empate)"]
          for l in resultado],
     )
-    util.nota(
-        "Sem OPTIONAL o empate desapareceria da resposta inteira, e nao apenas a "
-        "coluna vazia."
-    )
+    util.nota("Sem OPTIONAL o empate sairia da resposta inteira, nao so da coluna.")
 
 
 # --------------------------------------------------------------------------- #
@@ -188,16 +180,11 @@ def consulta_5(g):
 # --------------------------------------------------------------------------- #
 
 def consulta_6(g):
-    """CONSTRUCT: monta um grafo derivado de confrontos.
-
-    Emite SO a direcao mandante -> visitante. A direcao inversa nunca e escrita:
-    ela vai aparecer sozinha na consulta 7, por causa de owl:SymmetricProperty.
-    """
+    """CONSTRUCT: grafo derivado de confrontos, so no sentido mandante -> visitante."""
     util.consulta(
         "Parte 2", 6,
         "Grafo derivado: quem enfrentou quem",
-        "transformar 38 partidas num grafo de confrontos entre selecoes, "
-        "descartando placar, data e local",
+        "reduzir 38 partidas a um grafo de confrontos, sem placar, data ou local",
         "Forma: CONSTRUCT (devolve um grafo RDF novo, nao uma tabela)",
     )
     q = PREFIXOS + """
@@ -208,31 +195,27 @@ def consulta_6(g):
     }
     """
     derivado = g.query(q).graph
-    print(f"  Grafo construido: {len(derivado)} triplas copa:enfrentou "
-          f"(uma por partida, so no sentido mandante -> visitante)")
+    print(f"  Grafo construido: {len(derivado)} triplas copa:enfrentou, "
+          f"uma por partida")
     print()
-    # ordenado porque a iteracao sobre um Graph do rdflib nao tem ordem estavel
+    # a iteracao sobre um Graph do rdflib nao tem ordem estavel
     amostra = sorted([util.rotulo(g, s), util.rotulo(g, o)] for s, _, o in derivado)
     util.tabela(["selecao", "enfrentou"], amostra, limite=8)
 
-    # incorpora o grafo derivado a base em memoria, para a consulta 7
     for tripla in derivado:
         g.add(tripla)
     util.nota(
-        f"As {len(derivado)} triplas foram incorporadas ao grafo em memoria.\n"
-        "Repare que copa:selecao_ARG copa:enfrentou copa:selecao_ESP NAO esta entre "
-        "elas:\n"
-        "na final a Espanha era a mandante, entao so foi escrita ESP -> ARG."
+        "ARG -> ESP nao esta entre elas: na final a Espanha era a mandante, "
+        "entao\nso foi escrita ESP -> ARG."
     )
 
 
 def consulta_7(g):
-    """ASK: a simetria produziu a direcao que ninguem escreveu?"""
+    """ASK: verifica a direcao que a simetria deveria ter derivado."""
     util.consulta(
         "Parte 2", 7,
         "A Argentina enfrentou a Espanha?",
-        "verificar se o reasoner derivou a direcao inversa do confronto a partir "
-        "de owl:SymmetricProperty",
+        "conferir se owl:SymmetricProperty derivou a direcao inversa do confronto",
         "Forma: ASK (devolve apenas verdadeiro ou falso)",
     )
     q = PREFIXOS + """
@@ -247,9 +230,8 @@ def consulta_7(g):
     depois = bool(g.query(q))
     print(f"  Depois de reaplicar o reasoner: {depois}")
     util.nota(
-        "A tripla ARG -> ESP nunca foi escrita por ninguem: nem no arquivo .ttl, "
-        "nem\npelo CONSTRUCT da consulta 6. Ela existe porque copa:enfrentou foi "
-        "declarada\ncomo owl:SymmetricProperty."
+        "ARG -> ESP nao esta no .ttl nem saiu do CONSTRUCT da consulta 6: "
+        "existe\nporque copa:enfrentou e owl:SymmetricProperty."
     )
 
 
@@ -262,13 +244,13 @@ def _conta(g, consulta_contagem):
 
 
 def consulta_8(g):
-    """INSERT ... WHERE - regra de producao declarativa."""
+    """INSERT ... WHERE: regra de producao declarativa."""
     util.consulta(
         "Parte 2", 8,
         "INSERT: classificar automaticamente as semifinalistas",
-        "derivar uma classificacao nova a partir dos fatos existentes, em vez de "
-        "digitar quem chegou a semifinal",
-        "Forma: INSERT ... WHERE (condicao -> acao, como uma regra de producao)",
+        "derivar a classificacao dos fatos existentes em vez de digitar quem "
+        "chegou a semifinal",
+        "Forma: INSERT ... WHERE (condicao -> acao)",
     )
     contagem = "SELECT (COUNT(DISTINCT ?s) AS ?n) WHERE { ?s a copa:Semifinalista }"
     print(f"  ANTES : {_conta(g, contagem)} selecoes classificadas como copa:Semifinalista")
@@ -297,7 +279,7 @@ def consulta_8(g):
 
 
 def consulta_9(g):
-    """DELETE ... WHERE - remocao de fatos."""
+    """DELETE ... WHERE: remocao de fatos."""
     util.consulta(
         "Parte 2", 9,
         "DELETE: cortar um jogador do elenco da Espanha",
@@ -320,19 +302,17 @@ def consulta_9(g):
 
     print(f"  DEPOIS: elenco da Espanha com {_conta(g, contagem)} jogadores")
     util.nota(
-        "O DELETE apaga as duas direcoes de proposito. A tripla copa:temJogador foi\n"
-        "materializada pelo reasoner, e inferencia ja gravada no grafo nao se retrai\n"
-        "sozinha quando o fato de origem some."
+        "As duas direcoes sao apagadas: copa:temJogador foi materializada pelo\n"
+        "reasoner, e inferencia ja gravada nao se retrai quando a origem some."
     )
 
 
 def consulta_10(g):
-    """DELETE ... INSERT ... WHERE - transicao de estado."""
+    """DELETE ... INSERT ... WHERE: transicao de estado numa operacao so."""
     util.consulta(
         "Parte 2", 10,
         "DELETE/INSERT: trocar o tecnico da selecao brasileira",
-        "simular a substituicao do comando tecnico: o WHERE fixa os vinculos, o "
-        "DELETE desfaz o antigo e o INSERT cria o novo, na mesma operacao",
+        "o WHERE fixa os vinculos, o DELETE desfaz o antigo e o INSERT cria o novo",
         "Forma: DELETE ... INSERT ... WHERE",
     )
     q = PREFIXOS + """
@@ -356,10 +336,9 @@ def consulta_10(g):
     novo = [util.curto(l["tecnico"]) for l in g.query(q)]
     print(f"  DEPOIS: tecnico do Brasil = {', '.join(novo) or '(nenhum)'}")
     util.nota(
-        "Operacao hipotetica, so para demonstrar a forma DELETE/INSERT.\n"
-        "Como copa:treina e owl:FunctionalProperty, deixar os dois tecnicos ligados a\n"
-        "mesma selecao faria o reasoner concluir que sao a mesma pessoa - por isso a\n"
-        "remocao e a insercao precisam acontecer juntas."
+        "Operacao hipotetica. Como copa:treina e owl:FunctionalProperty, dois\n"
+        "tecnicos na mesma selecao fariam o reasoner conclui-los a mesma pessoa -\n"
+        "por isso remocao e insercao andam juntas."
     )
 
 

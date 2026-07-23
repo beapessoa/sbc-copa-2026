@@ -1,9 +1,8 @@
 """Mini-Projeto 3 - Base de conhecimento da Copa do Mundo FIFA de 2026.
 
-Carrega data/copa2026.ttl com rdflib, confere os requisitos minimos do enunciado,
-aplica o reasoner OWL-RL e executa as duas partes de consultas.
+Carrega data/copa2026.ttl, confere os requisitos minimos, aplica o reasoner
+OWL-RL e executa as duas partes de consultas.
 
-Uso:
     python main.py
 """
 
@@ -16,11 +15,7 @@ import util
 
 
 def sonda_inferencia(g, momento):
-    """Consulta que so devolve resultado depois do reasoner.
-
-    Pergunta o elenco da Espanha por copa:temJogador - propriedade que nao tem
-    UMA tripla sequer no arquivo .ttl, so a declaracao owl:inverseOf.
-    """
+    """Elenco da Espanha por copa:temJogador, que nao tem tripla no arquivo."""
     q = """
     PREFIX copa: <http://ufpb.br/sbc/copa2026#>
     SELECT (COUNT(?j) AS ?n) WHERE { copa:selecao_ESP copa:temJogador ?j }
@@ -51,10 +46,10 @@ def main():
     tudo_ok = base.estatisticas(g)
 
     # ---------------------------------------------------------------- #
-    # 3. Reasoner: prova de que as construcoes OWL nao sao decorativas
+    # 3. Reasoner
     # ---------------------------------------------------------------- #
-    util.banner("REASONER OWL-RL - O QUE A BASE PASSA A SABER")
-    print("  Sonda: uma consulta que o arquivo .ttl, sozinho, nao consegue responder.")
+    util.banner("REASONER OWL-RL")
+    print("  Sonda: uma consulta que o arquivo .ttl, sozinho, nao responde.")
     print()
     antes_sonda = sonda_inferencia(g, "ANTES do reasoner:")
 
@@ -68,9 +63,8 @@ def main():
     print()
     if antes_sonda == 0 and depois_sonda > 0:
         util.nota(
-            f"De 0 para {depois_sonda}. As construcoes OWL estao fazendo trabalho real:\n"
-            "owl:inverseOf derivou o elenco inteiro sem que uma unica tripla\n"
-            "copa:temJogador estivesse escrita no arquivo."
+            f"De 0 para {depois_sonda}: owl:inverseOf derivou o elenco inteiro sem\n"
+            "nenhuma tripla copa:temJogador escrita no arquivo."
         )
     else:
         util.nota("ATENCAO: a sonda de inferencia nao se comportou como esperado.")
@@ -91,8 +85,8 @@ def main():
           "(SELECT, CONSTRUCT, ASK, INSERT, DELETE, DELETE/INSERT)")
     print(f"  Requisitos minimos: {'TODOS ATENDIDOS' if tudo_ok else 'HA FALHAS ACIMA'}")
     print()
-    print("  O arquivo data/copa2026.ttl nao foi modificado: as tres consultas de")
-    print("  UPDATE atuaram apenas sobre o grafo carregado em memoria.")
+    print("  data/copa2026.ttl nao foi modificado: os tres UPDATE atuaram apenas")
+    print("  sobre o grafo em memoria.")
     print()
     return 0 if tudo_ok else 1
 

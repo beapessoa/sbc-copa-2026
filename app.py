@@ -1,10 +1,5 @@
-"""Interface Streamlit para apresentar a base de conhecimento da Copa 2026.
+"""Interface Streamlit sobre a base da Copa 2026.
 
-EXTRA OPCIONAL. A entrega do mini-projeto continua sendo `python main.py`;
-este arquivo existe so para a apresentacao em video e nao altera nada da base
-nem das consultas - ele reaproveita os mesmos modulos.
-
-Uso:
     pip install -r requirements-app.txt
     streamlit run app.py
 """
@@ -28,12 +23,12 @@ st.set_page_config(page_title="Copa 2026 - Base de Conhecimento", page_icon="⚽
 
 
 # --------------------------------------------------------------------------- #
-# Carga (em cache, para a navegacao ficar instantanea no video)
+# Carga
 # --------------------------------------------------------------------------- #
 
 @st.cache_resource
 def grafo_puro():
-    """Grafo exatamente como esta no arquivo .ttl, sem inferencia."""
+    """Grafo como esta no arquivo, sem inferencia."""
     return base.carregar()
 
 
@@ -46,7 +41,7 @@ def grafo_inferido():
 
 
 def copia(g):
-    """Copia rasa do grafo, para consultas que alteram o conteudo."""
+    """Copia do grafo, para as consultas que alteram conteudo."""
     novo = Graph()
     novo.bind("copa", COPA)
     for tripla in g:
@@ -55,7 +50,7 @@ def copia(g):
 
 
 def saida_de(funcao, g):
-    """Captura o que a funcao de consulta imprimiria no terminal."""
+    """Captura o que a consulta imprimiria no terminal."""
     buffer = io.StringIO()
     with contextlib.redirect_stdout(buffer):
         funcao(g)
@@ -103,7 +98,7 @@ if secao == "Visão geral":
     st.title("Base de conhecimento da Copa do Mundo FIFA 2026")
     st.markdown(
         "Modelada em **RDF/RDFS/OWL**, entregue em Turtle e consultada com "
-        "**rdflib** e **SPARQL**. Todos os dados são reais, extraídos da Wikipédia."
+        "**rdflib** e **SPARQL**. Dados reais, extraídos da Wikipédia."
     )
 
     g = grafo_puro()
@@ -115,8 +110,6 @@ if secao == "Visão geral":
     inst = {s for s, o in g.subject_objects(RDF.type) if o in classes}
 
     st.subheader("A base em números")
-    # o minimo vai no rotulo: como delta, o Streamlit desenha uma seta de
-    # variacao que daria a entender que o numero subiu
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Triplas no arquivo · mín. 50", f"{len(g):,}".replace(",", "."))
     c2.metric("Classes · mín. 8", len(classes))
@@ -149,10 +142,8 @@ if secao == "Visão geral":
             "8 seleções — as 4 semifinalistas mais Brasil, Noruega, Marrocos e México"
         )
     st.caption(
-        "O recorte segue o próprio enunciado, que pede as quantidades mínimas "
-        "\"com informação real, sem inflar a base\". As 8 seleções com elenco são "
-        "exatamente as que aparecem nas partidas modeladas, então toda consulta que "
-        "cruza jogador → seleção → partida devolve resultado."
+        "As 8 seleções com elenco são as que aparecem nas partidas modeladas, "
+        "então consultas que cruzam jogador → seleção → partida devolvem resultado."
     )
 
     st.subheader("Instâncias por classe")
@@ -206,9 +197,8 @@ elif secao == "Taxonomia":
             language=None,
         )
         st.caption(
-            "A posição em campo é **subclasse**, não atributo. Assim \"liste os "
-            "goleiros\" é uma consulta por tipo, e o reasoner sabe que todo Goleiro "
-            "também é Jogador e Pessoa."
+            "A posição em campo é **subclasse**, não atributo: \"liste os goleiros\" "
+            "vira consulta por tipo, e todo Goleiro também é Jogador e Pessoa."
         )
 
         st.subheader("Local")
@@ -256,8 +246,8 @@ elif secao == "Taxonomia":
             language=None,
         )
         st.caption(
-            "`Semifinalista` é uma **classe derivada**: não tem instância no arquivo. "
-            "É povoada em execução pela regra INSERT da consulta 8."
+            "`Semifinalista` não tem instância no arquivo: é povoada em execução "
+            "pela regra INSERT da consulta 8."
         )
 
     st.divider()
@@ -277,8 +267,8 @@ elif secao == "Taxonomia":
         "`posicaoNoGrupo` · `codigoFIFA`"
     )
     st.caption(
-        "Todas as 26 declaram `rdfs:domain` e `rdfs:range`. Os rótulos legíveis usam "
-        "`rdfs:label`, sem domain — dois `rdfs:domain` na mesma propriedade "
+        "Todas as 26 declaram `rdfs:domain` e `rdfs:range`. Os rótulos usam "
+        "`rdfs:label`, sem domain: dois `rdfs:domain` na mesma propriedade "
         "significariam **interseção** de classes, não união."
     )
 
@@ -289,10 +279,7 @@ elif secao == "Taxonomia":
 
 elif secao == "Inferência OWL":
     st.title("Inferência OWL")
-    st.markdown(
-        "As 7 construções OWL não são decorativas. Abaixo, a **mesma consulta** "
-        "rodando com e sem o reasoner."
-    )
+    st.markdown("A **mesma consulta**, rodando com e sem o reasoner.")
 
     demo = st.radio(
         "Construção a demonstrar",
@@ -304,9 +291,8 @@ elif secao == "Inferência OWL":
 
     if demo == "owl:inverseOf":
         st.markdown(
-            "**A convocação é um fato só, visto de dois lados.** O arquivo escreve "
-            "apenas jogador → seleção (`copa:jogaPor`). Não existe **uma tripla "
-            "sequer** de `copa:temJogador` no `.ttl`."
+            "O arquivo escreve só o sentido jogador → seleção (`copa:jogaPor`). "
+            "Não existe **uma tripla sequer** de `copa:temJogador` no `.ttl`."
         )
         consulta = """
         PREFIX copa: <http://ufpb.br/sbc/copa2026#>
@@ -322,9 +308,8 @@ elif secao == "Inferência OWL":
 
     elif demo == "owl:TransitiveProperty":
         st.markdown(
-            "**Só os elos curtos são escritos**: estádio → cidade e cidade → país. "
-            "A pergunta \"em que país fica este estádio?\" nunca foi respondida por "
-            "uma tripla explícita."
+            "Só os elos curtos são escritos: estádio → cidade e cidade → país. "
+            "Nenhuma tripla liga estádio a país diretamente."
         )
         consulta = """
         PREFIX copa: <http://ufpb.br/sbc/copa2026#>
@@ -340,9 +325,8 @@ elif secao == "Inferência OWL":
 
     else:
         st.markdown(
-            "**Enfrentar não tem lado.** O CONSTRUCT monta o grafo de confrontos só "
-            "no sentido mandante → visitante. Na final a Espanha era a mandante, "
-            "então só foi escrita ESP → ARG."
+            "O CONSTRUCT monta os confrontos só no sentido mandante → visitante. "
+            "Na final a Espanha era a mandante, então só foi escrita ESP → ARG."
         )
         consulta = """
         PREFIX copa: <http://ufpb.br/sbc/copa2026#>
@@ -385,7 +369,7 @@ elif secao == "Inferência OWL":
                 st.caption("A base, sozinha, não sabe responder.")
 
     st.divider()
-    st.subheader("As 7 construções e o que cada uma resolve")
+    st.subheader("As 7 construções OWL")
     st.dataframe(
         [
             {"construção": "owl:inverseOf", "onde": "jogaPor ⁻¹ temJogador",
@@ -414,7 +398,7 @@ elif secao == "Inferência OWL":
 elif secao == "Parte 1 — g.triples()":
     st.title("Parte 1 — consultas com `g.triples()`")
     st.markdown(
-        "Sete consultas percorrendo **todas as combinações** do padrão "
+        "Sete consultas cobrindo as combinações do padrão "
         "(sujeito, predicado, objeto), com `None` como coringa."
     )
 
@@ -443,8 +427,8 @@ elif secao == "Parte 1 — g.triples()":
 elif secao == "Parte 2 — SPARQL":
     st.title("Parte 2 — consultas SPARQL")
     st.markdown(
-        "Dez consultas cobrindo **SELECT** (com FILTER, ORDER BY, agregação e "
-        "OPTIONAL), **CONSTRUCT**, **ASK** e as **três formas de Update**."
+        "**SELECT** (com FILTER, ORDER BY, agregação e OPTIONAL), **CONSTRUCT**, "
+        "**ASK** e as **três formas de Update**."
     )
 
     rotulos = [
@@ -464,8 +448,8 @@ elif secao == "Parte 2 — SPARQL":
 
     if escolha >= 5:
         st.warning(
-            "Esta consulta **altera o grafo**. Ela roda sobre uma cópia em memória; "
-            "o arquivo `data/copa2026.ttl` nunca é modificado.",
+            "Altera o grafo. Roda sobre uma cópia em memória; "
+            "`data/copa2026.ttl` não é modificado.",
             icon="✏️",
         )
 
@@ -473,7 +457,7 @@ elif secao == "Parte 2 — SPARQL":
         st.code(inspect.getsource(funcao), language="python")
 
     g = copia(grafo_inferido())
-    if escolha == 6:  # o ASK depende do CONSTRUCT ter rodado antes
+    if escolha == 6:  # o ASK depende do CONSTRUCT
         with contextlib.redirect_stdout(io.StringIO()):
             consultas_sparql.consulta_6(g)
     st.code(saida_de(funcao, g), language=None)
@@ -485,7 +469,7 @@ elif secao == "Parte 2 — SPARQL":
 
 elif secao == "Consulta livre":
     st.title("Consulta livre")
-    st.markdown("Escreva SPARQL contra a base. Aceita `SELECT`, `ASK` e `CONSTRUCT`.")
+    st.markdown("Aceita `SELECT`, `ASK` e `CONSTRUCT`.")
 
     exemplos = {
         "Jogadores mais velhos da base": """PREFIX copa: <http://ufpb.br/sbc/copa2026#>

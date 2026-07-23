@@ -13,7 +13,7 @@ ARQUIVO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "copa
 
 
 def carregar(caminho=ARQUIVO):
-    """Le o arquivo Turtle e devolve o grafo."""
+    """Le o Turtle e devolve o grafo."""
     g = Graph()
     g.parse(caminho, format="turtle")
     g.bind("copa", COPA)
@@ -25,17 +25,16 @@ def _classes(g):
 
 
 def _instancias_de(g, classe):
-    """Instancias da classe e de todas as suas subclasses, diretas ou nao.
+    """Instancias da classe e de todas as subclasses, diretas ou nao.
 
-    Fecha a hierarquia na mao porque estas checagens rodam ANTES do reasoner -
-    sem isso, uma copa:PartidaFinal nao contaria como copa:Partida.
+    A hierarquia e fechada na mao: estas checagens rodam antes do reasoner.
     """
     subclasses = set(g.transitive_subjects(RDFS.subClassOf, classe))
     return {s for s, o in g.subject_objects(RDF.type) if o in subclasses}
 
 
 def _profundidade_maxima(g):
-    """Maior numero de niveis abaixo de uma raiz na hierarquia rdfs:subClassOf."""
+    """Maior numero de niveis abaixo de uma raiz em rdfs:subClassOf."""
     classes = _classes(g)
     pais = defaultdict(set)
     for filho, _, pai in g.triples((None, RDFS.subClassOf, None)):
@@ -51,10 +50,7 @@ def _profundidade_maxima(g):
 
 
 def estatisticas(g):
-    """Imprime o cumprimento de cada requisito minimo do enunciado.
-
-    Devolve True se todos passaram.
-    """
+    """Imprime o cumprimento de cada minimo do enunciado. True se todos passaram."""
     util.banner("CONFERENCIA DOS REQUISITOS MINIMOS DA BASE")
 
     classes = _classes(g)
@@ -113,7 +109,7 @@ def estatisticas(g):
 
 
 def _integridade(g):
-    """Checagens de integridade dos dados reais transcritos da fonte."""
+    """Checagens de integridade dos dados transcritos da fonte."""
     print()
     print("  Integridade dos dados transcritos:")
     resultados = []
@@ -150,7 +146,7 @@ def _integridade(g):
 
 
 def aplicar_reasoner(g):
-    """Materializa as inferencias RDFS + OWL-RL no proprio grafo (in place)."""
+    """Materializa as inferencias RDFS + OWL-RL no proprio grafo."""
     from owlrl import DeductiveClosure, OWLRL_Semantics
 
     antes = len(g)

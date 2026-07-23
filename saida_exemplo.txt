@@ -59,9 +59,9 @@
   [OK  ] Partidas de mata-mata                              32   (esperado 32)
 
 ============================================================================================
-                        REASONER OWL-RL - O QUE A BASE PASSA A SABER                        
+                                      REASONER OWL-RL                                       
 ============================================================================================
-  Sonda: uma consulta que o arquivo .ttl, sozinho, nao consegue responder.
+  Sonda: uma consulta que o arquivo .ttl, sozinho, nao responde.
 
   ANTES do reasoner:       copa:selecao_ESP copa:temJogador ?j  ->  0 resultado(s)
 
@@ -70,9 +70,8 @@
 
   DEPOIS do reasoner:      copa:selecao_ESP copa:temJogador ?j  ->  26 resultado(s)
 
-  >> De 0 para 26. As construcoes OWL estao fazendo trabalho real:
-  >> owl:inverseOf derivou o elenco inteiro sem que uma unica tripla
-  >> copa:temJogador estivesse escrita no arquivo.
+  >> De 0 para 26: owl:inverseOf derivou o elenco inteiro sem
+  >> nenhuma tripla copa:temJogador escrita no arquivo.
 
 ============================================================================================
                             PARTE 1 - CONSULTAS COM g.triples()                             
@@ -157,7 +156,6 @@
   9      | Gavi            | Barcelona
   10     | Dani Olmo       | Barcelona
   ... (+16 linhas; total de 26)
-  >> Nenhuma destas triplas esta no .ttl: todas vieram de owl:inverseOf.
   >> Sem o reasoner, esta consulta devolveria zero linhas.
 
 [Parte 1 | Consulta 5] Selecoes do Grupo A
@@ -196,7 +194,7 @@
 ============================================================================================
 
 [Parte 2 | Consulta 1] Elenco da Argentina com posicao, camisa e clube
-  Proposito: juntar tres padroes pela variavel compartilhada ?j e ler a posicao do jogador a partir da subclasse que ele instancia
+  Proposito: ler a posicao do jogador a partir da subclasse que ele instancia
 
   camisa | jogador            | posicao      | clube
   -------+--------------------+--------------+------------------
@@ -213,7 +211,7 @@
   ... (+16 linhas; total de 26)
 
 [Parte 2 | Consulta 2] Estadios grandes fora dos Estados Unidos
-  Proposito: filtrar por capacidade e por pais; o vinculo estadio->pais nao existe no arquivo, vem da transitividade de copa:localizadoEm
+  Proposito: filtrar por capacidade e por pais - o vinculo estadio->pais vem da transitividade de copa:localizadoEm
   Clausulas: FILTER (>) e FILTER NOT EXISTS
 
   estadio        | cidade           | pais   | capacidade
@@ -225,7 +223,7 @@
   (4 linhas)
 
 [Parte 2 | Consulta 3] Caminho da Espanha ate o titulo, em ordem cronologica
-  Proposito: reconstruir a campanha da campea usando um caminho de propriedade para chegar do jogo ate o pais
+  Proposito: reconstruir a campanha da campea, chegando do jogo ate o pais por um caminho de propriedade
   Clausulas: ORDER BY e o caminho copa:sediadaEm/copa:localizadoEm+
 
   data       | confronto                              | estadio         | pais
@@ -238,7 +236,7 @@
   (5 linhas)
 
 [Parte 2 | Consulta 4] Artilharia por selecao nas partidas modeladas
-  Proposito: somar os gols que cada selecao marcou, esteja ela como mandante ou como visitante, e manter apenas quem fez 5 ou mais
+  Proposito: somar os gols de cada selecao como mandante e como visitante, mantendo quem fez 5 ou mais
   Clausulas: UNION, GROUP BY, SUM, COUNT, HAVING e ORDER BY
 
   selecao    | gols marcados | partidas
@@ -253,7 +251,7 @@
   (7 linhas)
 
 [Parte 2 | Consulta 5] Partidas do Grupo A e quem venceu cada uma
-  Proposito: listar as partidas mesmo quando nao ha vencedora registrada - o empate sem disputa de penaltis simplesmente nao tem essa tripla
+  Proposito: listar as partidas mesmo sem vencedora registrada - o empate sem penaltis nao tem essa tripla
   Clausula: OPTIONAL (o equivalente ao LEFT JOIN do SQL)
 
   data       | confronto                                       | vencedora
@@ -265,13 +263,13 @@
   2026-06-24 | Fase de grupos: Chéquia 0-3 México              | México
   2026-06-24 | Fase de grupos: África do Sul 1-0 Coreia do Sul | África do Sul
   (6 linhas)
-  >> Sem OPTIONAL o empate desapareceria da resposta inteira, e nao apenas a coluna vazia.
+  >> Sem OPTIONAL o empate sairia da resposta inteira, nao so da coluna.
 
 [Parte 2 | Consulta 6] Grafo derivado: quem enfrentou quem
-  Proposito: transformar 38 partidas num grafo de confrontos entre selecoes, descartando placar, data e local
+  Proposito: reduzir 38 partidas a um grafo de confrontos, sem placar, data ou local
   Forma: CONSTRUCT (devolve um grafo RDF novo, nao uma tabela)
 
-  Grafo construido: 38 triplas copa:enfrentou (uma por partida, so no sentido mandante -> visitante)
+  Grafo construido: 38 triplas copa:enfrentou, uma por partida
 
   selecao   | enfrentou
   ----------+-----------
@@ -284,23 +282,21 @@
   Brasil    | Noruega
   Bélgica   | Senegal
   ... (+30 linhas; total de 38)
-  >> As 38 triplas foram incorporadas ao grafo em memoria.
-  >> Repare que copa:selecao_ARG copa:enfrentou copa:selecao_ESP NAO esta entre elas:
-  >> na final a Espanha era a mandante, entao so foi escrita ESP -> ARG.
+  >> ARG -> ESP nao esta entre elas: na final a Espanha era a mandante, entao
+  >> so foi escrita ESP -> ARG.
 
 [Parte 2 | Consulta 7] A Argentina enfrentou a Espanha?
-  Proposito: verificar se o reasoner derivou a direcao inversa do confronto a partir de owl:SymmetricProperty
+  Proposito: conferir se owl:SymmetricProperty derivou a direcao inversa do confronto
   Forma: ASK (devolve apenas verdadeiro ou falso)
 
   Antes de reaplicar o reasoner: False
   Depois de reaplicar o reasoner: True
-  >> A tripla ARG -> ESP nunca foi escrita por ninguem: nem no arquivo .ttl, nem
-  >> pelo CONSTRUCT da consulta 6. Ela existe porque copa:enfrentou foi declarada
-  >> como owl:SymmetricProperty.
+  >> ARG -> ESP nao esta no .ttl nem saiu do CONSTRUCT da consulta 6: existe
+  >> porque copa:enfrentou e owl:SymmetricProperty.
 
 [Parte 2 | Consulta 8] INSERT: classificar automaticamente as semifinalistas
-  Proposito: derivar uma classificacao nova a partir dos fatos existentes, em vez de digitar quem chegou a semifinal
-  Forma: INSERT ... WHERE (condicao -> acao, como uma regra de producao)
+  Proposito: derivar a classificacao dos fatos existentes em vez de digitar quem chegou a semifinal
+  Forma: INSERT ... WHERE (condicao -> acao)
 
   ANTES : 0 selecoes classificadas como copa:Semifinalista
   DEPOIS: 4 selecoes classificadas como copa:Semifinalista
@@ -319,20 +315,18 @@
 
   ANTES : elenco da Espanha com 26 jogadores
   DEPOIS: elenco da Espanha com 25 jogadores
-  >> O DELETE apaga as duas direcoes de proposito. A tripla copa:temJogador foi
-  >> materializada pelo reasoner, e inferencia ja gravada no grafo nao se retrai
-  >> sozinha quando o fato de origem some.
+  >> As duas direcoes sao apagadas: copa:temJogador foi materializada pelo
+  >> reasoner, e inferencia ja gravada nao se retrai quando a origem some.
 
 [Parte 2 | Consulta 10] DELETE/INSERT: trocar o tecnico da selecao brasileira
-  Proposito: simular a substituicao do comando tecnico: o WHERE fixa os vinculos, o DELETE desfaz o antigo e o INSERT cria o novo, na mesma operacao
+  Proposito: o WHERE fixa os vinculos, o DELETE desfaz o antigo e o INSERT cria o novo
   Forma: DELETE ... INSERT ... WHERE
 
   ANTES : tecnico do Brasil = Carlo Ancelotti
   DEPOIS: tecnico do Brasil = Jorge Jesus
-  >> Operacao hipotetica, so para demonstrar a forma DELETE/INSERT.
-  >> Como copa:treina e owl:FunctionalProperty, deixar os dois tecnicos ligados a
-  >> mesma selecao faria o reasoner concluir que sao a mesma pessoa - por isso a
-  >> remocao e a insercao precisam acontecer juntas.
+  >> Operacao hipotetica. Como copa:treina e owl:FunctionalProperty, dois
+  >> tecnicos na mesma selecao fariam o reasoner conclui-los a mesma pessoa -
+  >> por isso remocao e insercao andam juntas.
 
 ============================================================================================
                                             FIM                                             
@@ -341,6 +335,6 @@
   Parte 2: 10 consultas SPARQL (SELECT, CONSTRUCT, ASK, INSERT, DELETE, DELETE/INSERT)
   Requisitos minimos: TODOS ATENDIDOS
 
-  O arquivo data/copa2026.ttl nao foi modificado: as tres consultas de
-  UPDATE atuaram apenas sobre o grafo carregado em memoria.
+  data/copa2026.ttl nao foi modificado: os tres UPDATE atuaram apenas
+  sobre o grafo em memoria.
 
