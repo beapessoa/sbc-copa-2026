@@ -1,0 +1,346 @@
+
+============================================================================================
+                          MINI-PROJETO 3 - COPA DO MUNDO FIFA 2026                          
+============================================================================================
+  Base de conhecimento em RDF/RDFS/OWL consultada com rdflib e SPARQL.
+  Arquivo: /Users/bea/Documents/sbc-copa-2026/data/copa2026.ttl
+  Carregado sem erros: 2904 triplas.
+
+============================================================================================
+                         CONFERENCIA DOS REQUISITOS MINIMOS DA BASE                         
+============================================================================================
+  Requisitos do enunciado:
+  [OK  ] Classes em hierarquia                              27   (minimo 8)
+  [OK  ] Niveis abaixo da raiz (rdfs:subClassOf)             2   (minimo 2)
+  [OK  ] Propriedades de objeto                             12   (minimo 5)
+  [OK  ] Propriedades de dados                              14   (minimo 5)
+  [OK  ] Propriedades no total                              26   (minimo 10)
+  [OK  ] Propriedades com rdfs:domain                       26   (esperado 26)
+  [OK  ] Propriedades com rdfs:range                        26   (esperado 26)
+  [OK  ] Instancias                                        381   (minimo 25)
+  [OK  ] Triplas no arquivo Turtle                        2904   (minimo 50)
+  [OK  ] Construcoes OWL distintas                           7   (minimo 5)
+
+  Construcoes OWL declaradas:
+    - owl:inverseOf                      1 ocorrencia(s)
+    - owl:TransitiveProperty             1 ocorrencia(s)
+    - owl:SymmetricProperty              1 ocorrencia(s)
+    - owl:FunctionalProperty            13 ocorrencia(s)
+    - owl:InverseFunctionalProperty      1 ocorrencia(s)
+    - owl:disjointWith                   9 ocorrencia(s)
+    - owl:equivalentClass                1 ocorrencia(s)
+
+  Instancias por classe (contagem direta, sem inferencia):
+    - Defensor                   67
+    - MeioCampista               63
+    - Atacante                   54
+    - Selecao                    48
+    - Arbitro                    26
+    - Goleiro                    24
+    - CidadeSede                 16
+    - Estadio                    16
+    - Partida16Avos              16
+    - Grupo                      12
+    - PartidaOitavas              8
+    - Tecnico                     8
+    - Confederacao                6
+    - PartidaFaseGrupos           6
+    - PartidaQuartas              4
+    - Pais                        3
+    - PartidaSemifinal            2
+    - PartidaFinal                1
+    - PartidaTerceiroLugar        1
+
+  Integridade dos dados transcritos:
+  [OK  ] Selecoes com elenco modelado                        8   (esperado 8)
+  [OK  ] Todos os elencos com 26 convocados                 26   (esperado 26)
+  [OK  ] Numero de camisa unico dentro de cada elenco        -
+  [OK  ] Partidas modeladas                                 38   (esperado 38)
+  [OK  ] Partidas de mata-mata                              32   (esperado 32)
+
+============================================================================================
+                        REASONER OWL-RL - O QUE A BASE PASSA A SABER                        
+============================================================================================
+  Sonda: uma consulta que o arquivo .ttl, sozinho, nao consegue responder.
+
+  ANTES do reasoner:       copa:selecao_ESP copa:temJogador ?j  ->  0 resultado(s)
+
+  DeductiveClosure(OWLRL_Semantics).expand(g)
+  Triplas: 2904 -> 6531  (+3627 inferidas)
+
+  DEPOIS do reasoner:      copa:selecao_ESP copa:temJogador ?j  ->  26 resultado(s)
+
+  >> De 0 para 26. As construcoes OWL estao fazendo trabalho real:
+  >> owl:inverseOf derivou o elenco inteiro sem que uma unica tripla
+  >> copa:temJogador estivesse escrita no arquivo.
+
+============================================================================================
+                            PARTE 1 - CONSULTAS COM g.triples()                             
+============================================================================================
+
+[Parte 1 | Consulta 1] Tudo que a base sabe sobre a selecao da Espanha
+  Proposito: inspecionar um recurso inteiro, como um 'SELECT *' de uma entidade
+  Padrao: (copa:selecao_ESP, None, None)
+
+  predicado       | objeto
+  ----------------+------------------------
+  codigoFIFA      | ESP
+  filiadaA        | conf_UEFA
+  label           | Espanha
+  pertenceAoGrupo | grupo_H
+  posicaoNoGrupo  | 1
+  sameAs          | selecao_ESP
+  temJogador      | jogador_alex_baena
+  temJogador      | jogador_alex_grimaldo
+  temJogador      | jogador_aymeric_laporte
+  temJogador      | jogador_borja_iglesias
+  temJogador      | jogador_dani_olmo
+  temJogador      | jogador_david_raya
+  ... (+22 linhas; total de 34)
+
+[Parte 1 | Consulta 2] Capacidade de todos os estadios da Copa
+  Proposito: varrer uma propriedade de dados inteira, sem fixar sujeito
+  Padrao: (None, copa:capacidade, None)
+
+  estadio                 | capacidade
+  ------------------------+-----------
+  Estadio Azteca          | 80.824
+  MetLife Stadium         | 80.663
+  AT&T Stadium            | 70.649
+  SoFi Stadium            | 70.492
+  Arrowhead Stadium       | 69.045
+  Levi's Stadium          | 68.827
+  NRG Stadium             | 68.777
+  Lincoln Financial Field | 68.324
+  Mercedes-Benz Stadium   | 68.239
+  Lumen Field             | 66.925
+  Hard Rock Stadium       | 64.478
+  Gillette Stadium        | 64.146
+  BC Place                | 52.497
+  Estadio BBVA            | 51.243
+  Estadio Akron           | 45.664
+  BMO Field               | 43.036
+  (16 linhas)
+
+[Parte 1 | Consulta 3] Quem sao os goleiros da base
+  Proposito: listar as instancias de uma classe folha da hierarquia de posicoes
+  Padrao: (None, rdf:type, copa:Goleiro)
+
+  goleiro           | selecao   | camisa
+  ------------------+-----------+-------
+  Juan Musso        | Argentina | 1
+  Gerónimo Rulli    | Argentina | 12
+  Emiliano Martínez | Argentina | 23
+  Alisson           | Brasil    | 1
+  Weverton          | Brasil    | 12
+  Ederson Moraes    | Brasil    | 23
+  David Raya        | Espanha   | 1
+  Joan Garcia       | Espanha   | 13
+  Unai Simón        | Espanha   | 23
+  Brice Samba       | França    | 1
+  ... (+14 linhas; total de 24)
+
+[Parte 1 | Consulta 4] Elenco da Espanha pela propriedade inversa
+  Proposito: mostrar que a inversa OWL responde uma pergunta que o arquivo nao contem
+  Padrao: (copa:selecao_ESP, copa:temJogador, None)
+
+  camisa | jogador         | clube
+  -------+-----------------+--------------------
+  1      | David Raya      | Arsenal
+  2      | Marc Pubill     | Atlético Madrid
+  3      | Álex Grimaldo   | Bayer Leverkusen
+  4      | Eric García     | Barcelona
+  5      | Marcos Llorente | Atlético Madrid
+  6      | Mikel Merino    | Arsenal
+  7      | Ferran Torres   | Barcelona
+  8      | Fabián Ruiz     | Paris Saint-Germain
+  9      | Gavi            | Barcelona
+  10     | Dani Olmo       | Barcelona
+  ... (+16 linhas; total de 26)
+  >> Nenhuma destas triplas esta no .ttl: todas vieram de owl:inverseOf.
+  >> Sem o reasoner, esta consulta devolveria zero linhas.
+
+[Parte 1 | Consulta 5] Selecoes do Grupo A
+  Proposito: navegar uma relacao no sentido inverso fixando o objeto
+  Padrao: (None, copa:pertenceAoGrupo, copa:grupo_A)
+
+  colocacao | selecao       | codigo FIFA
+  ----------+---------------+------------
+  1         | México        | MEX
+  2         | África do Sul | RSA
+  3         | Coreia do Sul | KOR
+  4         | Chéquia       | CZE
+  (4 linhas)
+
+[Parte 1 | Consulta 6] Teste de existencia: a Espanha foi a mandante da final?
+  Proposito: verificar um fato pontual sem trazer dado nenhum de volta
+  Padrao: (copa:partida_final_esp_arg, copa:mandante, copa:selecao_ESP)
+
+  Resposta: True
+  Contraprova (o Brasil foi mandante da final?): False
+
+[Parte 1 | Consulta 7] Todo recurso que se relaciona com o MetLife Stadium
+  Proposito: descobrir as conexoes de entrada de um recurso, sem fixar a propriedade
+  Padrao: (None, None, copa:estadio_metlife_stadium)
+
+  propriedade | recurso de origem
+  ------------+-------------------------------------
+  sameAs      | MetLife Stadium
+  sediadaEm   | 16-avos de final: França 3-0 Suécia
+  sediadaEm   | Final: Espanha 1-0 Argentina
+  sediadaEm   | Oitavas de final: Brasil 1-2 Noruega
+  (4 linhas)
+
+============================================================================================
+                                 PARTE 2 - CONSULTAS SPARQL                                 
+============================================================================================
+
+[Parte 2 | Consulta 1] Elenco da Argentina com posicao, camisa e clube
+  Proposito: juntar tres padroes pela variavel compartilhada ?j e ler a posicao do jogador a partir da subclasse que ele instancia
+
+  camisa | jogador            | posicao      | clube
+  -------+--------------------+--------------+------------------
+  1      | Juan Musso         | Goleiro      | Atlético Madrid
+  2      | Marcos Senesi      | Defensor     | Bournemouth
+  3      | Nicolás Tagliafico | Defensor     | Lyon
+  4      | Gonzalo Montiel    | Defensor     | River Plate
+  5      | Leandro Paredes    | MeioCampista | Boca Juniors
+  6      | Lisandro Martínez  | Defensor     | Manchester United
+  7      | Rodrigo De Paul    | MeioCampista | Inter Miami CF
+  8      | Valentín Barco     | MeioCampista | Strasbourg
+  9      | Julián Alvarez     | Atacante     | Atlético Madrid
+  10     | Lionel Messi       | Atacante     | Inter Miami CF
+  ... (+16 linhas; total de 26)
+
+[Parte 2 | Consulta 2] Estadios grandes fora dos Estados Unidos
+  Proposito: filtrar por capacidade e por pais; o vinculo estadio->pais nao existe no arquivo, vem da transitividade de copa:localizadoEm
+  Clausulas: FILTER (>) e FILTER NOT EXISTS
+
+  estadio        | cidade           | pais   | capacidade
+  ---------------+------------------+--------+-----------
+  Estadio Azteca | Cidade do México | México | 80824
+  BC Place       | Vancouver        | Canadá | 52497
+  Estadio BBVA   | Monterrey        | México | 51243
+  Estadio Akron  | Guadalajara      | México | 45664
+  (4 linhas)
+
+[Parte 2 | Consulta 3] Caminho da Espanha ate o titulo, em ordem cronologica
+  Proposito: reconstruir a campanha da campea usando um caminho de propriedade para chegar do jogo ate o pais
+  Clausulas: ORDER BY e o caminho copa:sediadaEm/copa:localizadoEm+
+
+  data       | confronto                              | estadio         | pais
+  -----------+----------------------------------------+-----------------+---------------
+  2026-07-02 | 16-avos de final: Espanha 3-0 Áustria  | SoFi Stadium    | Estados Unidos
+  2026-07-06 | Oitavas de final: Portugal 0-1 Espanha | AT&T Stadium    | Estados Unidos
+  2026-07-10 | Quartas de final: Espanha 2-1 Bélgica  | SoFi Stadium    | Estados Unidos
+  2026-07-14 | Semifinal: França 0-2 Espanha          | AT&T Stadium    | Estados Unidos
+  2026-07-19 | Final: Espanha 1-0 Argentina           | MetLife Stadium | Estados Unidos
+  (5 linhas)
+
+[Parte 2 | Consulta 4] Artilharia por selecao nas partidas modeladas
+  Proposito: somar os gols que cada selecao marcou, esteja ela como mandante ou como visitante, e manter apenas quem fez 5 ou mais
+  Clausulas: UNION, GROUP BY, SUM, COUNT, HAVING e ORDER BY
+
+  selecao    | gols marcados | partidas
+  -----------+---------------+---------
+  Inglaterra | 14            | 5
+  Argentina  | 11            | 5
+  França     | 10            | 5
+  México     | 10            | 5
+  Espanha    | 9             | 5
+  Bélgica    | 8             | 3
+  Noruega    | 5             | 3
+  (7 linhas)
+
+[Parte 2 | Consulta 5] Partidas do Grupo A e quem venceu cada uma
+  Proposito: listar as partidas mesmo quando nao ha vencedora registrada - o empate sem disputa de penaltis simplesmente nao tem essa tripla
+  Clausula: OPTIONAL (o equivalente ao LEFT JOIN do SQL)
+
+  data       | confronto                                       | vencedora
+  -----------+-------------------------------------------------+--------------
+  2026-06-11 | Fase de grupos: Coreia do Sul 2-1 Chéquia       | Coreia do Sul
+  2026-06-11 | Fase de grupos: México 2-0 África do Sul        | México
+  2026-06-18 | Fase de grupos: Chéquia 1-1 África do Sul       | (empate)
+  2026-06-18 | Fase de grupos: México 1-0 Coreia do Sul        | México
+  2026-06-24 | Fase de grupos: Chéquia 0-3 México              | México
+  2026-06-24 | Fase de grupos: África do Sul 1-0 Coreia do Sul | África do Sul
+  (6 linhas)
+  >> Sem OPTIONAL o empate desapareceria da resposta inteira, e nao apenas a coluna vazia.
+
+[Parte 2 | Consulta 6] Grafo derivado: quem enfrentou quem
+  Proposito: transformar 38 partidas num grafo de confrontos entre selecoes, descartando placar, data e local
+  Forma: CONSTRUCT (devolve um grafo RDF novo, nao uma tabela)
+
+  Grafo construido: 38 triplas copa:enfrentou (uma por partida, so no sentido mandante -> visitante)
+
+  selecao   | enfrentou
+  ----------+-----------
+  Alemanha  | Paraguai
+  Argentina | Cabo Verde
+  Argentina | Egito
+  Argentina | Suíça
+  Austrália | Egito
+  Brasil    | Japão
+  Brasil    | Noruega
+  Bélgica   | Senegal
+  ... (+30 linhas; total de 38)
+  >> As 38 triplas foram incorporadas ao grafo em memoria.
+  >> Repare que copa:selecao_ARG copa:enfrentou copa:selecao_ESP NAO esta entre elas:
+  >> na final a Espanha era a mandante, entao so foi escrita ESP -> ARG.
+
+[Parte 2 | Consulta 7] A Argentina enfrentou a Espanha?
+  Proposito: verificar se o reasoner derivou a direcao inversa do confronto a partir de owl:SymmetricProperty
+  Forma: ASK (devolve apenas verdadeiro ou falso)
+
+  Antes de reaplicar o reasoner: False
+  Depois de reaplicar o reasoner: True
+  >> A tripla ARG -> ESP nunca foi escrita por ninguem: nem no arquivo .ttl, nem
+  >> pelo CONSTRUCT da consulta 6. Ela existe porque copa:enfrentou foi declarada
+  >> como owl:SymmetricProperty.
+
+[Parte 2 | Consulta 8] INSERT: classificar automaticamente as semifinalistas
+  Proposito: derivar uma classificacao nova a partir dos fatos existentes, em vez de digitar quem chegou a semifinal
+  Forma: INSERT ... WHERE (condicao -> acao, como uma regra de producao)
+
+  ANTES : 0 selecoes classificadas como copa:Semifinalista
+  DEPOIS: 4 selecoes classificadas como copa:Semifinalista
+
+  selecao    | colocacao no grupo
+  -----------+-------------------
+  Argentina  | 1
+  Espanha    | 1
+  França     | 1
+  Inglaterra | 1
+  (4 linhas)
+
+[Parte 2 | Consulta 9] DELETE: cortar um jogador do elenco da Espanha
+  Proposito: simular um corte por lesao, removendo a convocacao de Borja Iglesias
+  Forma: DELETE ... WHERE
+
+  ANTES : elenco da Espanha com 26 jogadores
+  DEPOIS: elenco da Espanha com 25 jogadores
+  >> O DELETE apaga as duas direcoes de proposito. A tripla copa:temJogador foi
+  >> materializada pelo reasoner, e inferencia ja gravada no grafo nao se retrai
+  >> sozinha quando o fato de origem some.
+
+[Parte 2 | Consulta 10] DELETE/INSERT: trocar o tecnico da selecao brasileira
+  Proposito: simular a substituicao do comando tecnico: o WHERE fixa os vinculos, o DELETE desfaz o antigo e o INSERT cria o novo, na mesma operacao
+  Forma: DELETE ... INSERT ... WHERE
+
+  ANTES : tecnico do Brasil = Carlo Ancelotti
+  DEPOIS: tecnico do Brasil = Jorge Jesus
+  >> Operacao hipotetica, so para demonstrar a forma DELETE/INSERT.
+  >> Como copa:treina e owl:FunctionalProperty, deixar os dois tecnicos ligados a
+  >> mesma selecao faria o reasoner concluir que sao a mesma pessoa - por isso a
+  >> remocao e a insercao precisam acontecer juntas.
+
+============================================================================================
+                                            FIM                                             
+============================================================================================
+  Parte 1: 7 consultas com g.triples()
+  Parte 2: 10 consultas SPARQL (SELECT, CONSTRUCT, ASK, INSERT, DELETE, DELETE/INSERT)
+  Requisitos minimos: TODOS ATENDIDOS
+
+  O arquivo data/copa2026.ttl nao foi modificado: as tres consultas de
+  UPDATE atuaram apenas sobre o grafo carregado em memoria.
+
