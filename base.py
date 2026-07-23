@@ -72,7 +72,9 @@ def estatisticas(g):
             set(g.subjects(RDF.type, OWL.InverseFunctionalProperty))
         ),
         "owl:disjointWith": len(set(g.triples((None, OWL.disjointWith, None)))),
-        "owl:equivalentClass": len(set(g.triples((None, OWL.equivalentClass, None)))),
+        "owl:propertyDisjointWith": len(
+            set(g.triples((None, OWL.propertyDisjointWith, None)))
+        ),
     }
     usadas = sum(1 for n in construcoes_owl.values() if n > 0)
 
@@ -146,9 +148,24 @@ def _integridade(g):
 
 
 def aplicar_reasoner(g):
-    """Materializa as inferencias RDFS + OWL-RL no proprio grafo."""
-    from owlrl import DeductiveClosure, OWLRL_Semantics
+    """Materializa as inferencias RDFS + OWL-RL no proprio grafo.
+
+    Devolve (triplas antes, triplas depois, inconsistencias encontradas).
+
+    O reasoner e instanciado direto em vez de via DeductiveClosure porque o atalho
+    descarta `error_messages` - e e la que o owlrl reporta violacoes de
+    owl:disjointWith e owl:propertyDisjointWith.
+    """
+    from owlrl import OWLRL_Semantics
+    from owlrl.DatatypeHandling import use_Alt_lexical_conversions, \
+        use_RDFLib_lexical_conversions
 
     antes = len(g)
-    DeductiveClosure(OWLRL_Semantics).expand(g)
-    return antes, len(g)
+    use_Alt_lexical_conversions()
+    try:
+        fecho = OWLRL_Semantics(g, False, False, rdfs=False)
+        fecho.closure()
+        fecho.flush_stored_triples()
+    finally:
+        use_RDFLib_lexical_conversions()
+    return antes, len(g), list(getattr(fecho, "error_messages", []))

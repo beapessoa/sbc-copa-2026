@@ -77,7 +77,7 @@ def consulta_2(g):
         ?c a copa:CidadeSede ; rdfs:label ?cidade .
         ?p a copa:Pais ; rdfs:label ?pais .
         FILTER (?capacidade > 45000)
-        FILTER NOT EXISTS { ?e copa:localizadoEm copa:pais_USA }
+        FILTER NOT EXISTS { ?e copa:localizadoEm copa:pais_estados_unidos }
     }
     ORDER BY DESC(?capacidade)
     """
@@ -103,7 +103,7 @@ def consulta_3(g):
            rdfs:label ?confronto ;
            copa:dataPartida ?data ;
            copa:sediadaEm ?e .
-        { ?m copa:mandante copa:selecao_ESP } UNION { ?m copa:visitante copa:selecao_ESP }
+        { ?m copa:equipeA copa:selecao_ESP } UNION { ?m copa:equipeB copa:selecao_ESP }
         ?e rdfs:label ?estadio .
         ?m copa:sediadaEm/copa:localizadoEm+ ?p .
         ?p a copa:Pais ; rdfs:label ?pais .
@@ -121,16 +121,16 @@ def consulta_4(g):
     util.consulta(
         "Parte 2", 4,
         "Artilharia por selecao nas partidas modeladas",
-        "somar os gols de cada selecao como mandante e como visitante, "
-        "mantendo quem fez 5 ou mais",
+        "somar os gols de cada selecao nos dois lados da tabela, mantendo quem "
+        "fez 5 ou mais",
         "Clausulas: UNION, GROUP BY, SUM, COUNT, HAVING e ORDER BY",
     )
     q = PREFIXOS + """
     SELECT ?selecao (SUM(?gols) AS ?golsMarcados) (COUNT(?m) AS ?partidas)
     WHERE {
-        { ?m copa:mandante  ?s ; copa:golsMandante  ?gols }
+        { ?m copa:equipeA  ?s ; copa:golsEquipeA  ?gols }
         UNION
-        { ?m copa:visitante ?s ; copa:golsVisitante ?gols }
+        { ?m copa:equipeB ?s ; copa:golsEquipeB ?gols }
         ?s rdfs:label ?selecao .
     }
     GROUP BY ?selecao
@@ -180,7 +180,7 @@ def consulta_5(g):
 # --------------------------------------------------------------------------- #
 
 def consulta_6(g):
-    """CONSTRUCT: grafo derivado de confrontos, so no sentido mandante -> visitante."""
+    """CONSTRUCT: grafo derivado de confrontos, so no sentido equipe A -> equipe B."""
     util.consulta(
         "Parte 2", 6,
         "Grafo derivado: quem enfrentou quem",
@@ -190,13 +190,13 @@ def consulta_6(g):
     q = PREFIXOS + """
     CONSTRUCT { ?a copa:enfrentou ?b }
     WHERE {
-        ?m copa:mandante ?a ;
-           copa:visitante ?b .
+        ?m copa:equipeA ?a ;
+           copa:equipeB ?b .
     }
     """
     derivado = g.query(q).graph
     print(f"  Grafo construido: {len(derivado)} triplas copa:enfrentou, "
-          f"uma por partida")
+          f"uma por partida, so no sentido equipe A -> equipe B")
     print()
     # a iteracao sobre um Graph do rdflib nao tem ordem estavel
     amostra = sorted([util.rotulo(g, s), util.rotulo(g, o)] for s, _, o in derivado)
@@ -205,8 +205,8 @@ def consulta_6(g):
     for tripla in derivado:
         g.add(tripla)
     util.nota(
-        "ARG -> ESP nao esta entre elas: na final a Espanha era a mandante, "
-        "entao\nso foi escrita ESP -> ARG."
+        "ARG -> ESP nao esta entre elas: na final a Espanha e a equipe A, entao\n"
+        "so foi escrita ESP -> ARG."
     )
 
 
@@ -259,7 +259,7 @@ def consulta_8(g):
     INSERT { ?s a copa:Semifinalista }
     WHERE {
         ?m a copa:PartidaSemifinal .
-        { ?m copa:mandante ?s } UNION { ?m copa:visitante ?s }
+        { ?m copa:equipeA ?s } UNION { ?m copa:equipeB ?s }
     }
     """)
 

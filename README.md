@@ -81,30 +81,30 @@ México entre 11 de junho e 19 de julho de 2026, vencida pela **Espanha**, que b
 
 | Métrica | Valor | Mínimo exigido |
 |---|---|---|
-| Triplas no arquivo Turtle | **2.904** | 50 |
-| Classes | **27** | 8 |
+| Triplas no arquivo Turtle | **3.056** | 50 |
+| Classes | **26** | 8 |
 | Níveis abaixo da raiz | **2** | 2 |
-| Propriedades de objeto | **12** | 5 |
-| Propriedades de dados | **14** | 5 |
-| Propriedades no total | **26** | 10 |
-| Instâncias | **381** | 25 |
+| Propriedades de objeto | **14** | 5 |
+| Propriedades de dados | **13** | 5 |
+| Propriedades no total | **27** | 10 |
+| Instâncias | **431** | 25 |
 | Construções OWL distintas | **7** | 5 |
 
-Após o reasoner, o grafo passa de **2.904 para 6.531 triplas**: 3.627 fatos derivados.
+Após o reasoner, o grafo passa de **3.056 para 6.760 triplas**: 3.704 fatos derivados.
 
 ### Instâncias por classe
 
 | Classe | Qtd. | Classe | Qtd. |
 |---|---:|---|---:|
-| Defensor | 67 | Grupo | 12 |
-| MeioCampista | 63 | PartidaOitavas | 8 |
+| Defensor | 67 | Partida16Avos | 16 |
+| MeioCampista | 63 | Grupo | 12 |
+| Pais | 53 | PartidaOitavas | 8 |
 | Atacante | 54 | Tecnico | 8 |
 | Selecao | 48 | Confederacao | 6 |
 | Arbitro | 26 | PartidaFaseGrupos | 6 |
 | Goleiro | 24 | PartidaQuartas | 4 |
-| CidadeSede | 16 | Pais | 3 |
-| Estadio | 16 | PartidaSemifinal | 2 |
-| Partida16Avos | 16 | PartidaFinal | 1 |
+| CidadeSede | 16 | PartidaSemifinal | 2 |
+| Estadio | 16 | PartidaFinal | 1 |
 | | | PartidaTerceiroLugar | 1 |
 
 ### Origem e recorte dos dados
@@ -162,11 +162,17 @@ estádio → país **não é escrito**: vem da transitividade.
 
 ```
 Local
-├── Pais            (3: Estados Unidos, Canadá, México)
+├── Pais            (53)
 ├── Cidade
 │   └── CidadeSede  (16)
 └── Estadio         (16)
 ```
+
+Os 53 países são **um registro único**, compartilhado por três usos: os 3 países-sede,
+o país que cada uma das 48 seleções representa (`copa:representa`) e a federação de cada
+árbitro (`copa:nacionalidade`). É por isso que o árbitro Wilton Sampaio e a seleção do
+Brasil apontam para o **mesmo** `copa:pais_brasil`, e uma consulta consegue cruzar os
+dois.
 
 ### Partida
 
@@ -176,7 +182,7 @@ A fase do torneio é a classe da partida. Com 48 seleções, o mata-mata de 2026
 ```
 Partida
 ├── PartidaFaseGrupos
-└── PartidaMataMata          (≡ PartidaEliminatoria)
+└── PartidaMataMata
     ├── Partida16Avos
     ├── PartidaOitavas
     ├── PartidaQuartas
@@ -197,14 +203,19 @@ pela regra `INSERT ... WHERE` da consulta 8.
 
 ### Propriedades
 
-**De objeto (12).** `jogaPor`, `temJogador`, `treina`, `pertenceAoGrupo`, `filiadaA`,
-`mandante`, `visitante`, `sediadaEm`, `vencedora`, `apitou`, `localizadoEm`, `enfrentou`.
+**De objeto (14).** `jogaPor`, `temJogador`, `treina`, `pertenceAoGrupo`, `filiadaA`,
+`representa`, `nacionalidade`, `equipeA`, `equipeB`, `sediadaEm`, `vencedora`, `apitou`,
+`localizadoEm`, `enfrentou`.
 
-**De dados (14).** `numeroCamisa`, `dataNascimento`, `clubeAtual`, `jogosPelaSelecao`,
-`golsPelaSelecao`, `paisDeOrigem`, `capacidade`, `dataPartida`, `golsMandante`,
-`golsVisitante`, `publico`, `letraGrupo`, `posicaoNoGrupo`, `codigoFIFA`.
+**De dados (13).** `numeroCamisa`, `dataNascimento`, `clubeAtual`, `jogosPelaSelecao`,
+`golsPelaSelecao`, `capacidade`, `dataPartida`, `golsEquipeA`, `golsEquipeB`, `publico`,
+`letraGrupo`, `posicaoNoGrupo`, `codigoFIFA`.
 
-Todas as 26 declaram `rdfs:domain` e `rdfs:range`. Os rótulos usam `rdfs:label`, sem
+`equipeA` e `equipeB` não são "mandante" e "visitante": a Copa é disputada em sede
+neutra, então não existe time da casa. São apenas a primeira e a segunda seleção da
+tabela oficial da FIFA.
+
+Todas as 27 declaram `rdfs:domain` e `rdfs:range`. Os rótulos usam `rdfs:label`, sem
 domain: dois `rdfs:domain` na mesma propriedade significariam **interseção** de classes,
 não união.
 
@@ -218,11 +229,11 @@ O `main.py` demonstra o efeito de cada uma na saída.
 |---|---|---|
 | `owl:inverseOf` | `jogaPor` ⁻¹ `temJogador` | O arquivo escreve só o sentido jogador → seleção; o elenco de cada seleção é **inferido**. Não existe uma única tripla `temJogador` no `.ttl`. |
 | `owl:TransitiveProperty` | `localizadoEm` | Estádio → cidade → país, sem repetir o vínculo com o país em cada um dos 16 estádios. |
-| `owl:SymmetricProperty` | `enfrentou` | Se A enfrentou B, B enfrentou A. O CONSTRUCT da consulta 6 emite só o sentido mandante → visitante; a inversa é derivada. |
+| `owl:SymmetricProperty` | `enfrentou` | Se A enfrentou B, B enfrentou A. O CONSTRUCT da consulta 6 emite só o sentido equipe A → equipe B; a inversa é derivada. |
 | `owl:FunctionalProperty` | `sediadaEm`, `treina`, `dataPartida`, `numeroCamisa`, `pertenceAoGrupo`, `filiadaA`, `vencedora`, entre outras | Cada uma tem no máximo um valor: uma partida ocorre em um estádio, numa data; um técnico comanda uma seleção; um jogador usa um número. |
 | `owl:InverseFunctionalProperty` | `codigoFIFA` | "BRA" identifica unicamente uma seleção. É uma chave global: duas bases que usem o mesmo código falam da mesma seleção, e o reasoner deriva `owl:sameAs`. |
 | `owl:disjointWith` | 9 pares entre as posições, `Jogador`, `Tecnico` e `Arbitro` | Ninguém é goleiro e atacante, nem jogador e árbitro da mesma competição. Torna esse erro **detectável**, o que RDFS sozinho não expressa. |
-| `owl:equivalentClass` | `PartidaMataMata` ≡ `PartidaEliminatoria` | Os dois termos circulam na imprensa e nos documentos da FIFA. A equivalência integra uma base que use o outro nome sem reescrever dado. |
+| `owl:propertyDisjointWith` | `equipeA` ⊥ `equipeB` | Nenhuma seleção joga contra si mesma, então não pode ocupar os dois lados da mesma partida. |
 
 ### A prova de que a inferência funciona
 
@@ -234,6 +245,17 @@ DEPOIS do reasoner:      copa:selecao_ESP copa:temJogador ?j  ->  26 resultado(s
 ```
 
 De 0 para 26 sem nenhuma mudança no arquivo.
+
+### A prova de que as disjunções são verificadas
+
+Declarar `owl:disjointWith` não adianta se ninguém checar. O `main.py` roda o reasoner
+duas vezes: na base real, que passa com **0 inconsistências**, e numa cópia com dois
+erros plantados de propósito — um goleiro também declarado atacante e a Espanha
+declarada como equipe A **e** equipe B da final. A cópia é reprovada com 3
+inconsistências, cada uma apontando o recurso culpado.
+
+Isso exige instanciar o reasoner diretamente: o atalho `DeductiveClosure(...).expand()`
+descarta as mensagens de erro do `owlrl`.
 
 ---
 
@@ -251,7 +273,7 @@ Cada função declara no docstring **o que busca** e o **resultado esperado**.
 | 3 | `(None, rdf:type, O)` | Quem são os goleiros da base |
 | 4 | `(S, P, None)` | Elenco da Espanha — **só existe por inferência** |
 | 5 | `(None, P, O)` | Seleções do Grupo A |
-| 6 | `(S, P, O)` | Teste de existência: a Espanha foi mandante da final? |
+| 6 | `(S, P, O)` | Teste de existência: a Espanha é a equipe A da final? |
 | 7 | `(None, None, O)` | Tudo que se relaciona com o MetLife Stadium |
 
 ### Parte 2 — SPARQL (10 consultas)

@@ -72,7 +72,7 @@ copa:Local a owl:Class ;
 copa:Pais a owl:Class ;
     rdfs:label "Pais" ;
     rdfs:subClassOf copa:Local ;
-    rdfs:comment "Pais-sede da competicao." .
+    rdfs:comment "Pais ou territorio filiado a FIFA: sede da competicao, pais representado por uma selecao ou federacao de um arbitro." .
 
 copa:Cidade a owl:Class ;
     rdfs:label "Cidade" ;
@@ -160,18 +160,10 @@ copa:Confederacao a owl:Class ;
 # ============================================================================
 
 # Sao 7 construcoes OWL, numeradas de OWL 1 a OWL 7 ao longo do arquivo.
-# As duas sobre classes ficam aqui; as cinco sobre propriedades ficam na
+# A que incide sobre classes fica aqui; as seis sobre propriedades ficam na
 # secao seguinte, junto da propriedade afetada.
 
-# OWL 1 - owl:equivalentClass
-# 'Mata-mata' e 'fase eliminatoria' nomeiam o mesmo conceito na imprensa e nos
-# documentos da FIFA. A equivalencia integra uma base que use o outro termo.
-copa:PartidaEliminatoria a owl:Class ;
-    rdfs:label "PartidaEliminatoria" ;
-    owl:equivalentClass copa:PartidaMataMata ;
-    rdfs:comment "Sinonimo de PartidaMataMata usado pela imprensa esportiva." .
-
-# OWL 2 - owl:disjointWith
+# OWL 1 - owl:disjointWith
 # Ninguem ocupa duas posicoes em campo, nem e jogador e arbitro da mesma
 # competicao. A disjuncao torna esse erro detectavel pelo reasoner - RDFS
 # sozinho nao expressa isso.
@@ -231,19 +223,33 @@ copa:filiadaA a owl:ObjectProperty ,
     rdfs:range copa:Confederacao ;
     rdfs:comment "Funcional: cada selecao pertence a uma unica confederacao continental." .
 
-copa:mandante a owl:ObjectProperty ,
+copa:equipeA a owl:ObjectProperty ,
         owl:FunctionalProperty ;
-    rdfs:label "mandante" ;
+    rdfs:label "equipeA" ;
     rdfs:domain copa:Partida ;
     rdfs:range copa:Selecao ;
-    rdfs:comment "Selecao listada em primeiro lugar na tabela oficial da partida." .
+    rdfs:comment "Primeira selecao na tabela oficial. A Copa e disputada em sede neutra, entao nao ha mandante nem visitante: sao equipe A e equipe B." .
 
-copa:visitante a owl:ObjectProperty ,
+copa:equipeB a owl:ObjectProperty ,
         owl:FunctionalProperty ;
-    rdfs:label "visitante" ;
+    rdfs:label "equipeB" ;
     rdfs:domain copa:Partida ;
     rdfs:range copa:Selecao ;
-    rdfs:comment "Selecao listada em segundo lugar na tabela oficial da partida." .
+    rdfs:comment "Segunda selecao na tabela oficial da partida." .
+
+copa:representa a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:label "representa" ;
+    rdfs:domain copa:Selecao ;
+    rdfs:range copa:Pais ;
+    rdfs:comment "Funcional: cada selecao representa um unico pais ou territorio filiado." .
+
+copa:nacionalidade a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:label "nacionalidade" ;
+    rdfs:domain copa:Arbitro ;
+    rdfs:range copa:Pais ;
+    rdfs:comment "Funcional: federacao do arbitro. Aponta para o MESMO recurso copa:Pais que as selecoes usam, e nao para um literal solto." .
 
 copa:sediadaEm a owl:ObjectProperty ,
         owl:FunctionalProperty ;
@@ -265,12 +271,12 @@ copa:apitou a owl:ObjectProperty ;
     rdfs:range copa:Partida ;
     rdfs:comment "Arbitro principal designado para a partida." .
 
-# OWL 3 - owl:inverseOf
+# OWL 2 - owl:inverseOf
 # So o lado jogador -> selecao e escrito (208 triplas). O reasoner deriva o
 # elenco de cada selecao; nenhuma tripla copa:temJogador existe no arquivo.
 copa:jogaPor owl:inverseOf copa:temJogador .
 
-# OWL 4 - owl:TransitiveProperty
+# OWL 3 - owl:TransitiveProperty
 # So os elos curtos sao escritos: estadio -> cidade, cidade -> pais. Sem a
 # transitividade, o vinculo com o pais teria de ser repetido em cada estadio.
 copa:localizadoEm a owl:ObjectProperty , owl:TransitiveProperty ;
@@ -279,15 +285,21 @@ copa:localizadoEm a owl:ObjectProperty , owl:TransitiveProperty ;
     rdfs:range copa:Local ;
     rdfs:comment "Transitiva: Estadio -> CidadeSede -> Pais implica Estadio -> Pais." .
 
-# OWL 5 - owl:SymmetricProperty
+# OWL 4 - owl:SymmetricProperty
 # Se A enfrentou B, B enfrentou A: a simetria evita gravar as duas direcoes.
 # Sem instancia no arquivo - a consulta CONSTRUCT da Parte 2 emite a direcao
-# mandante -> visitante e o reasoner deriva a inversa.
+# equipe A -> equipe B e o reasoner deriva a inversa.
 copa:enfrentou a owl:ObjectProperty , owl:SymmetricProperty ;
     rdfs:label "enfrentou" ;
     rdfs:domain copa:Selecao ;
     rdfs:range copa:Selecao ;
     rdfs:comment "Simetrica: duas selecoes que ja se cruzaram no torneio." .
+
+# OWL 7 - owl:propertyDisjointWith
+# Uma selecao nao pode ser a equipe A e a equipe B da mesma partida: ninguem
+# joga contra si mesmo. A disjuncao entre as duas propriedades torna esse erro
+# de dado detectavel pelo reasoner, que reporta a violacao.
+copa:equipeA owl:propertyDisjointWith copa:equipeB .
 
 
 # --- Propriedades de dados (14) --------------------------------------------
@@ -324,12 +336,6 @@ copa:golsPelaSelecao a owl:DatatypeProperty ;
     rdfs:range xsd:integer ;
     rdfs:comment "Gols oficiais pela selecao ate o inicio da Copa." .
 
-copa:paisDeOrigem a owl:DatatypeProperty ;
-    rdfs:label "paisDeOrigem" ;
-    rdfs:domain copa:Arbitro ;
-    rdfs:range xsd:string ;
-    rdfs:comment "Federacao nacional a que o arbitro e filiado." .
-
 copa:capacidade a owl:DatatypeProperty ;
     rdfs:label "capacidade" ;
     rdfs:domain copa:Estadio ;
@@ -343,17 +349,17 @@ copa:dataPartida a owl:DatatypeProperty ,
     rdfs:range xsd:date ;
     rdfs:comment "Funcional: uma partida ocorre em uma unica data." .
 
-copa:golsMandante a owl:DatatypeProperty ;
-    rdfs:label "golsMandante" ;
+copa:golsEquipeA a owl:DatatypeProperty ;
+    rdfs:label "golsEquipeA" ;
     rdfs:domain copa:Partida ;
     rdfs:range xsd:integer ;
-    rdfs:comment "Gols do mandante no tempo normal somado a prorrogacao." .
+    rdfs:comment "Gols da equipe A no tempo normal somado a prorrogacao." .
 
-copa:golsVisitante a owl:DatatypeProperty ;
-    rdfs:label "golsVisitante" ;
+copa:golsEquipeB a owl:DatatypeProperty ;
+    rdfs:label "golsEquipeB" ;
     rdfs:domain copa:Partida ;
     rdfs:range xsd:integer ;
-    rdfs:comment "Gols do visitante no tempo normal somado a prorrogacao." .
+    rdfs:comment "Gols da equipe B no tempo normal somado a prorrogacao." .
 
 copa:publico a owl:DatatypeProperty ;
     rdfs:label "publico" ;
@@ -375,7 +381,7 @@ copa:posicaoNoGrupo a owl:DatatypeProperty ,
     rdfs:range xsd:integer ;
     rdfs:comment "Colocacao final da selecao na sua chave, de 1 a 4." .
 
-# OWL 6 e 7 - owl:FunctionalProperty + owl:InverseFunctionalProperty
+# OWL 5 e 6 - owl:FunctionalProperty + owl:InverseFunctionalProperty
 # O codigo FIFA e uma chave global: cada selecao tem exatamente um (funcional)
 # e cada codigo pertence a uma so selecao (inversamente funcional). Duas bases
 # que usem 'BRA' falam da mesma selecao, e o reasoner deriva owl:sameAs.
@@ -389,31 +395,83 @@ copa:codigoFIFA a owl:DatatypeProperty ,
 
 
 # ============================================================================
-# A-BOX 1/6 - GEOGRAFIA: 3 paises, 16 cidades-sede, 16 estadios
+# A-BOX 1/6 - GEOGRAFIA: 53 paises, 16 cidades-sede, 16 estadios
 # ============================================================================
 
 # A ligacao estadio -> pais nao e escrita; vem da transitividade.
+# Estes recursos sao compartilhados: a mesma copa:pais_brasil serve de pais
+# representado pela selecao e de federacao dos arbitros brasileiros.
 
-copa:pais_CAN a copa:Pais ; rdfs:label "Canadá" .
-copa:pais_USA a copa:Pais ; rdfs:label "Estados Unidos" .
-copa:pais_MEX a copa:Pais ; rdfs:label "México" .
+copa:pais_alemanha a copa:Pais ; rdfs:label "Alemanha" .
+copa:pais_argentina a copa:Pais ; rdfs:label "Argentina" .
+copa:pais_argelia a copa:Pais ; rdfs:label "Argélia" .
+copa:pais_arabia_saudita a copa:Pais ; rdfs:label "Arábia Saudita" .
+copa:pais_australia a copa:Pais ; rdfs:label "Austrália" .
+copa:pais_brasil a copa:Pais ; rdfs:label "Brasil" .
+copa:pais_belgica a copa:Pais ; rdfs:label "Bélgica" .
+copa:pais_bosnia_e_herzegovina a copa:Pais ; rdfs:label "Bósnia e Herzegovina" .
+copa:pais_cabo_verde a copa:Pais ; rdfs:label "Cabo Verde" .
+copa:pais_canada a copa:Pais ; rdfs:label "Canadá" .
+copa:pais_catar a copa:Pais ; rdfs:label "Catar" .
+copa:pais_chequia a copa:Pais ; rdfs:label "Chéquia" .
+copa:pais_colombia a copa:Pais ; rdfs:label "Colômbia" .
+copa:pais_coreia_do_sul a copa:Pais ; rdfs:label "Coreia do Sul" .
+copa:pais_costa_do_marfim a copa:Pais ; rdfs:label "Costa do Marfim" .
+copa:pais_croacia a copa:Pais ; rdfs:label "Croácia" .
+copa:pais_curacao a copa:Pais ; rdfs:label "Curaçao" .
+copa:pais_egito a copa:Pais ; rdfs:label "Egito" .
+copa:pais_el_salvador a copa:Pais ; rdfs:label "El Salvador" .
+copa:pais_equador a copa:Pais ; rdfs:label "Equador" .
+copa:pais_escocia a copa:Pais ; rdfs:label "Escócia" .
+copa:pais_eslovenia a copa:Pais ; rdfs:label "Eslovênia" .
+copa:pais_espanha a copa:Pais ; rdfs:label "Espanha" .
+copa:pais_estados_unidos a copa:Pais ; rdfs:label "Estados Unidos" .
+copa:pais_franca a copa:Pais ; rdfs:label "França" .
+copa:pais_gana a copa:Pais ; rdfs:label "Gana" .
+copa:pais_haiti a copa:Pais ; rdfs:label "Haiti" .
+copa:pais_honduras a copa:Pais ; rdfs:label "Honduras" .
+copa:pais_inglaterra a copa:Pais ; rdfs:label "Inglaterra" .
+copa:pais_iraque a copa:Pais ; rdfs:label "Iraque" .
+copa:pais_ira a copa:Pais ; rdfs:label "Irã" .
+copa:pais_italia a copa:Pais ; rdfs:label "Itália" .
+copa:pais_japao a copa:Pais ; rdfs:label "Japão" .
+copa:pais_jordania a copa:Pais ; rdfs:label "Jordânia" .
+copa:pais_marrocos a copa:Pais ; rdfs:label "Marrocos" .
+copa:pais_mexico a copa:Pais ; rdfs:label "México" .
+copa:pais_noruega a copa:Pais ; rdfs:label "Noruega" .
+copa:pais_nova_zelandia a copa:Pais ; rdfs:label "Nova Zelândia" .
+copa:pais_panama a copa:Pais ; rdfs:label "Panamá" .
+copa:pais_paraguai a copa:Pais ; rdfs:label "Paraguai" .
+copa:pais_paises_baixos a copa:Pais ; rdfs:label "Países Baixos" .
+copa:pais_portugal a copa:Pais ; rdfs:label "Portugal" .
+copa:pais_republica_democratica_do_congo a copa:Pais ; rdfs:label "República Democrática do Congo" .
+copa:pais_senegal a copa:Pais ; rdfs:label "Senegal" .
+copa:pais_suecia a copa:Pais ; rdfs:label "Suécia" .
+copa:pais_suica a copa:Pais ; rdfs:label "Suíça" .
+copa:pais_tunisia a copa:Pais ; rdfs:label "Tunísia" .
+copa:pais_turquia a copa:Pais ; rdfs:label "Turquia" .
+copa:pais_uruguai a copa:Pais ; rdfs:label "Uruguai" .
+copa:pais_uzbequistao a copa:Pais ; rdfs:label "Uzbequistão" .
+copa:pais_venezuela a copa:Pais ; rdfs:label "Venezuela" .
+copa:pais_africa_do_sul a copa:Pais ; rdfs:label "África do Sul" .
+copa:pais_austria a copa:Pais ; rdfs:label "Áustria" .
 
-copa:cidade_atlanta a copa:CidadeSede ; rdfs:label "Atlanta" ; copa:localizadoEm copa:pais_USA .
-copa:cidade_boston a copa:CidadeSede ; rdfs:label "Boston" ; copa:localizadoEm copa:pais_USA .
-copa:cidade_cidade_do_mexico a copa:CidadeSede ; rdfs:label "Cidade do México" ; copa:localizadoEm copa:pais_MEX .
-copa:cidade_dallas a copa:CidadeSede ; rdfs:label "Dallas" ; copa:localizadoEm copa:pais_USA .
-copa:cidade_filadelfia a copa:CidadeSede ; rdfs:label "Filadélfia" ; copa:localizadoEm copa:pais_USA .
-copa:cidade_guadalajara a copa:CidadeSede ; rdfs:label "Guadalajara" ; copa:localizadoEm copa:pais_MEX .
-copa:cidade_houston a copa:CidadeSede ; rdfs:label "Houston" ; copa:localizadoEm copa:pais_USA .
-copa:cidade_kansas_city a copa:CidadeSede ; rdfs:label "Kansas City" ; copa:localizadoEm copa:pais_USA .
-copa:cidade_los_angeles a copa:CidadeSede ; rdfs:label "Los Angeles" ; copa:localizadoEm copa:pais_USA .
-copa:cidade_miami a copa:CidadeSede ; rdfs:label "Miami" ; copa:localizadoEm copa:pais_USA .
-copa:cidade_monterrey a copa:CidadeSede ; rdfs:label "Monterrey" ; copa:localizadoEm copa:pais_MEX .
-copa:cidade_nova_york_nova_jersey a copa:CidadeSede ; rdfs:label "Nova York/Nova Jersey" ; copa:localizadoEm copa:pais_USA .
-copa:cidade_seattle a copa:CidadeSede ; rdfs:label "Seattle" ; copa:localizadoEm copa:pais_USA .
-copa:cidade_sao_francisco a copa:CidadeSede ; rdfs:label "São Francisco" ; copa:localizadoEm copa:pais_USA .
-copa:cidade_toronto a copa:CidadeSede ; rdfs:label "Toronto" ; copa:localizadoEm copa:pais_CAN .
-copa:cidade_vancouver a copa:CidadeSede ; rdfs:label "Vancouver" ; copa:localizadoEm copa:pais_CAN .
+copa:cidade_atlanta a copa:CidadeSede ; rdfs:label "Atlanta" ; copa:localizadoEm copa:pais_estados_unidos .
+copa:cidade_boston a copa:CidadeSede ; rdfs:label "Boston" ; copa:localizadoEm copa:pais_estados_unidos .
+copa:cidade_cidade_do_mexico a copa:CidadeSede ; rdfs:label "Cidade do México" ; copa:localizadoEm copa:pais_mexico .
+copa:cidade_dallas a copa:CidadeSede ; rdfs:label "Dallas" ; copa:localizadoEm copa:pais_estados_unidos .
+copa:cidade_filadelfia a copa:CidadeSede ; rdfs:label "Filadélfia" ; copa:localizadoEm copa:pais_estados_unidos .
+copa:cidade_guadalajara a copa:CidadeSede ; rdfs:label "Guadalajara" ; copa:localizadoEm copa:pais_mexico .
+copa:cidade_houston a copa:CidadeSede ; rdfs:label "Houston" ; copa:localizadoEm copa:pais_estados_unidos .
+copa:cidade_kansas_city a copa:CidadeSede ; rdfs:label "Kansas City" ; copa:localizadoEm copa:pais_estados_unidos .
+copa:cidade_los_angeles a copa:CidadeSede ; rdfs:label "Los Angeles" ; copa:localizadoEm copa:pais_estados_unidos .
+copa:cidade_miami a copa:CidadeSede ; rdfs:label "Miami" ; copa:localizadoEm copa:pais_estados_unidos .
+copa:cidade_monterrey a copa:CidadeSede ; rdfs:label "Monterrey" ; copa:localizadoEm copa:pais_mexico .
+copa:cidade_nova_york_nova_jersey a copa:CidadeSede ; rdfs:label "Nova York/Nova Jersey" ; copa:localizadoEm copa:pais_estados_unidos .
+copa:cidade_seattle a copa:CidadeSede ; rdfs:label "Seattle" ; copa:localizadoEm copa:pais_estados_unidos .
+copa:cidade_sao_francisco a copa:CidadeSede ; rdfs:label "São Francisco" ; copa:localizadoEm copa:pais_estados_unidos .
+copa:cidade_toronto a copa:CidadeSede ; rdfs:label "Toronto" ; copa:localizadoEm copa:pais_canada .
+copa:cidade_vancouver a copa:CidadeSede ; rdfs:label "Vancouver" ; copa:localizadoEm copa:pais_canada .
 
 copa:estadio_estadio_azteca a copa:Estadio ;
     rdfs:label "Estadio Azteca" ;
@@ -526,6 +584,7 @@ copa:selecao_ALG a copa:Selecao ;
     copa:codigoFIFA "ALG" ;
     copa:pertenceAoGrupo copa:grupo_J ;
     copa:posicaoNoGrupo 3 ;
+    copa:representa copa:pais_argelia ;
     copa:filiadaA copa:conf_CAF .
 
 copa:selecao_ARG a copa:Selecao ;
@@ -533,6 +592,7 @@ copa:selecao_ARG a copa:Selecao ;
     copa:codigoFIFA "ARG" ;
     copa:pertenceAoGrupo copa:grupo_J ;
     copa:posicaoNoGrupo 1 ;
+    copa:representa copa:pais_argentina ;
     copa:filiadaA copa:conf_CONMEBOL .
 
 copa:selecao_AUS a copa:Selecao ;
@@ -540,6 +600,7 @@ copa:selecao_AUS a copa:Selecao ;
     copa:codigoFIFA "AUS" ;
     copa:pertenceAoGrupo copa:grupo_D ;
     copa:posicaoNoGrupo 2 ;
+    copa:representa copa:pais_australia ;
     copa:filiadaA copa:conf_AFC .
 
 copa:selecao_AUT a copa:Selecao ;
@@ -547,6 +608,7 @@ copa:selecao_AUT a copa:Selecao ;
     copa:codigoFIFA "AUT" ;
     copa:pertenceAoGrupo copa:grupo_J ;
     copa:posicaoNoGrupo 2 ;
+    copa:representa copa:pais_austria ;
     copa:filiadaA copa:conf_UEFA .
 
 copa:selecao_BEL a copa:Selecao ;
@@ -554,6 +616,7 @@ copa:selecao_BEL a copa:Selecao ;
     copa:codigoFIFA "BEL" ;
     copa:pertenceAoGrupo copa:grupo_G ;
     copa:posicaoNoGrupo 1 ;
+    copa:representa copa:pais_belgica ;
     copa:filiadaA copa:conf_UEFA .
 
 copa:selecao_BIH a copa:Selecao ;
@@ -561,6 +624,7 @@ copa:selecao_BIH a copa:Selecao ;
     copa:codigoFIFA "BIH" ;
     copa:pertenceAoGrupo copa:grupo_B ;
     copa:posicaoNoGrupo 3 ;
+    copa:representa copa:pais_bosnia_e_herzegovina ;
     copa:filiadaA copa:conf_UEFA .
 
 copa:selecao_BRA a copa:Selecao ;
@@ -568,6 +632,7 @@ copa:selecao_BRA a copa:Selecao ;
     copa:codigoFIFA "BRA" ;
     copa:pertenceAoGrupo copa:grupo_C ;
     copa:posicaoNoGrupo 1 ;
+    copa:representa copa:pais_brasil ;
     copa:filiadaA copa:conf_CONMEBOL .
 
 copa:selecao_CAN a copa:Selecao ;
@@ -575,6 +640,7 @@ copa:selecao_CAN a copa:Selecao ;
     copa:codigoFIFA "CAN" ;
     copa:pertenceAoGrupo copa:grupo_B ;
     copa:posicaoNoGrupo 2 ;
+    copa:representa copa:pais_canada ;
     copa:filiadaA copa:conf_CONCACAF .
 
 copa:selecao_CIV a copa:Selecao ;
@@ -582,6 +648,7 @@ copa:selecao_CIV a copa:Selecao ;
     copa:codigoFIFA "CIV" ;
     copa:pertenceAoGrupo copa:grupo_E ;
     copa:posicaoNoGrupo 2 ;
+    copa:representa copa:pais_costa_do_marfim ;
     copa:filiadaA copa:conf_CAF .
 
 copa:selecao_COD a copa:Selecao ;
@@ -589,6 +656,7 @@ copa:selecao_COD a copa:Selecao ;
     copa:codigoFIFA "COD" ;
     copa:pertenceAoGrupo copa:grupo_K ;
     copa:posicaoNoGrupo 3 ;
+    copa:representa copa:pais_republica_democratica_do_congo ;
     copa:filiadaA copa:conf_CAF .
 
 copa:selecao_COL a copa:Selecao ;
@@ -596,6 +664,7 @@ copa:selecao_COL a copa:Selecao ;
     copa:codigoFIFA "COL" ;
     copa:pertenceAoGrupo copa:grupo_K ;
     copa:posicaoNoGrupo 1 ;
+    copa:representa copa:pais_colombia ;
     copa:filiadaA copa:conf_CONMEBOL .
 
 copa:selecao_CPV a copa:Selecao ;
@@ -603,6 +672,7 @@ copa:selecao_CPV a copa:Selecao ;
     copa:codigoFIFA "CPV" ;
     copa:pertenceAoGrupo copa:grupo_H ;
     copa:posicaoNoGrupo 2 ;
+    copa:representa copa:pais_cabo_verde ;
     copa:filiadaA copa:conf_CAF .
 
 copa:selecao_CRO a copa:Selecao ;
@@ -610,6 +680,7 @@ copa:selecao_CRO a copa:Selecao ;
     copa:codigoFIFA "CRO" ;
     copa:pertenceAoGrupo copa:grupo_L ;
     copa:posicaoNoGrupo 2 ;
+    copa:representa copa:pais_croacia ;
     copa:filiadaA copa:conf_UEFA .
 
 copa:selecao_CUW a copa:Selecao ;
@@ -617,6 +688,7 @@ copa:selecao_CUW a copa:Selecao ;
     copa:codigoFIFA "CUW" ;
     copa:pertenceAoGrupo copa:grupo_E ;
     copa:posicaoNoGrupo 4 ;
+    copa:representa copa:pais_curacao ;
     copa:filiadaA copa:conf_CONCACAF .
 
 copa:selecao_CZE a copa:Selecao ;
@@ -624,6 +696,7 @@ copa:selecao_CZE a copa:Selecao ;
     copa:codigoFIFA "CZE" ;
     copa:pertenceAoGrupo copa:grupo_A ;
     copa:posicaoNoGrupo 4 ;
+    copa:representa copa:pais_chequia ;
     copa:filiadaA copa:conf_UEFA .
 
 copa:selecao_ECU a copa:Selecao ;
@@ -631,6 +704,7 @@ copa:selecao_ECU a copa:Selecao ;
     copa:codigoFIFA "ECU" ;
     copa:pertenceAoGrupo copa:grupo_E ;
     copa:posicaoNoGrupo 3 ;
+    copa:representa copa:pais_equador ;
     copa:filiadaA copa:conf_CONMEBOL .
 
 copa:selecao_EGY a copa:Selecao ;
@@ -638,6 +712,7 @@ copa:selecao_EGY a copa:Selecao ;
     copa:codigoFIFA "EGY" ;
     copa:pertenceAoGrupo copa:grupo_G ;
     copa:posicaoNoGrupo 2 ;
+    copa:representa copa:pais_egito ;
     copa:filiadaA copa:conf_CAF .
 
 copa:selecao_ENG a copa:Selecao ;
@@ -645,6 +720,7 @@ copa:selecao_ENG a copa:Selecao ;
     copa:codigoFIFA "ENG" ;
     copa:pertenceAoGrupo copa:grupo_L ;
     copa:posicaoNoGrupo 1 ;
+    copa:representa copa:pais_inglaterra ;
     copa:filiadaA copa:conf_UEFA .
 
 copa:selecao_ESP a copa:Selecao ;
@@ -652,6 +728,7 @@ copa:selecao_ESP a copa:Selecao ;
     copa:codigoFIFA "ESP" ;
     copa:pertenceAoGrupo copa:grupo_H ;
     copa:posicaoNoGrupo 1 ;
+    copa:representa copa:pais_espanha ;
     copa:filiadaA copa:conf_UEFA .
 
 copa:selecao_FRA a copa:Selecao ;
@@ -659,6 +736,7 @@ copa:selecao_FRA a copa:Selecao ;
     copa:codigoFIFA "FRA" ;
     copa:pertenceAoGrupo copa:grupo_I ;
     copa:posicaoNoGrupo 1 ;
+    copa:representa copa:pais_franca ;
     copa:filiadaA copa:conf_UEFA .
 
 copa:selecao_GER a copa:Selecao ;
@@ -666,6 +744,7 @@ copa:selecao_GER a copa:Selecao ;
     copa:codigoFIFA "GER" ;
     copa:pertenceAoGrupo copa:grupo_E ;
     copa:posicaoNoGrupo 1 ;
+    copa:representa copa:pais_alemanha ;
     copa:filiadaA copa:conf_UEFA .
 
 copa:selecao_GHA a copa:Selecao ;
@@ -673,6 +752,7 @@ copa:selecao_GHA a copa:Selecao ;
     copa:codigoFIFA "GHA" ;
     copa:pertenceAoGrupo copa:grupo_L ;
     copa:posicaoNoGrupo 3 ;
+    copa:representa copa:pais_gana ;
     copa:filiadaA copa:conf_CAF .
 
 copa:selecao_HAI a copa:Selecao ;
@@ -680,6 +760,7 @@ copa:selecao_HAI a copa:Selecao ;
     copa:codigoFIFA "HAI" ;
     copa:pertenceAoGrupo copa:grupo_C ;
     copa:posicaoNoGrupo 4 ;
+    copa:representa copa:pais_haiti ;
     copa:filiadaA copa:conf_CONCACAF .
 
 copa:selecao_IRN a copa:Selecao ;
@@ -687,6 +768,7 @@ copa:selecao_IRN a copa:Selecao ;
     copa:codigoFIFA "IRN" ;
     copa:pertenceAoGrupo copa:grupo_G ;
     copa:posicaoNoGrupo 3 ;
+    copa:representa copa:pais_ira ;
     copa:filiadaA copa:conf_AFC .
 
 copa:selecao_IRQ a copa:Selecao ;
@@ -694,6 +776,7 @@ copa:selecao_IRQ a copa:Selecao ;
     copa:codigoFIFA "IRQ" ;
     copa:pertenceAoGrupo copa:grupo_I ;
     copa:posicaoNoGrupo 4 ;
+    copa:representa copa:pais_iraque ;
     copa:filiadaA copa:conf_AFC .
 
 copa:selecao_JOR a copa:Selecao ;
@@ -701,6 +784,7 @@ copa:selecao_JOR a copa:Selecao ;
     copa:codigoFIFA "JOR" ;
     copa:pertenceAoGrupo copa:grupo_J ;
     copa:posicaoNoGrupo 4 ;
+    copa:representa copa:pais_jordania ;
     copa:filiadaA copa:conf_AFC .
 
 copa:selecao_JPN a copa:Selecao ;
@@ -708,6 +792,7 @@ copa:selecao_JPN a copa:Selecao ;
     copa:codigoFIFA "JPN" ;
     copa:pertenceAoGrupo copa:grupo_F ;
     copa:posicaoNoGrupo 2 ;
+    copa:representa copa:pais_japao ;
     copa:filiadaA copa:conf_AFC .
 
 copa:selecao_KOR a copa:Selecao ;
@@ -715,6 +800,7 @@ copa:selecao_KOR a copa:Selecao ;
     copa:codigoFIFA "KOR" ;
     copa:pertenceAoGrupo copa:grupo_A ;
     copa:posicaoNoGrupo 3 ;
+    copa:representa copa:pais_coreia_do_sul ;
     copa:filiadaA copa:conf_AFC .
 
 copa:selecao_KSA a copa:Selecao ;
@@ -722,6 +808,7 @@ copa:selecao_KSA a copa:Selecao ;
     copa:codigoFIFA "KSA" ;
     copa:pertenceAoGrupo copa:grupo_H ;
     copa:posicaoNoGrupo 4 ;
+    copa:representa copa:pais_arabia_saudita ;
     copa:filiadaA copa:conf_AFC .
 
 copa:selecao_MAR a copa:Selecao ;
@@ -729,6 +816,7 @@ copa:selecao_MAR a copa:Selecao ;
     copa:codigoFIFA "MAR" ;
     copa:pertenceAoGrupo copa:grupo_C ;
     copa:posicaoNoGrupo 2 ;
+    copa:representa copa:pais_marrocos ;
     copa:filiadaA copa:conf_CAF .
 
 copa:selecao_MEX a copa:Selecao ;
@@ -736,6 +824,7 @@ copa:selecao_MEX a copa:Selecao ;
     copa:codigoFIFA "MEX" ;
     copa:pertenceAoGrupo copa:grupo_A ;
     copa:posicaoNoGrupo 1 ;
+    copa:representa copa:pais_mexico ;
     copa:filiadaA copa:conf_CONCACAF .
 
 copa:selecao_NED a copa:Selecao ;
@@ -743,6 +832,7 @@ copa:selecao_NED a copa:Selecao ;
     copa:codigoFIFA "NED" ;
     copa:pertenceAoGrupo copa:grupo_F ;
     copa:posicaoNoGrupo 1 ;
+    copa:representa copa:pais_paises_baixos ;
     copa:filiadaA copa:conf_UEFA .
 
 copa:selecao_NOR a copa:Selecao ;
@@ -750,6 +840,7 @@ copa:selecao_NOR a copa:Selecao ;
     copa:codigoFIFA "NOR" ;
     copa:pertenceAoGrupo copa:grupo_I ;
     copa:posicaoNoGrupo 2 ;
+    copa:representa copa:pais_noruega ;
     copa:filiadaA copa:conf_UEFA .
 
 copa:selecao_NZL a copa:Selecao ;
@@ -757,6 +848,7 @@ copa:selecao_NZL a copa:Selecao ;
     copa:codigoFIFA "NZL" ;
     copa:pertenceAoGrupo copa:grupo_G ;
     copa:posicaoNoGrupo 4 ;
+    copa:representa copa:pais_nova_zelandia ;
     copa:filiadaA copa:conf_OFC .
 
 copa:selecao_PAN a copa:Selecao ;
@@ -764,6 +856,7 @@ copa:selecao_PAN a copa:Selecao ;
     copa:codigoFIFA "PAN" ;
     copa:pertenceAoGrupo copa:grupo_L ;
     copa:posicaoNoGrupo 4 ;
+    copa:representa copa:pais_panama ;
     copa:filiadaA copa:conf_CONCACAF .
 
 copa:selecao_PAR a copa:Selecao ;
@@ -771,6 +864,7 @@ copa:selecao_PAR a copa:Selecao ;
     copa:codigoFIFA "PAR" ;
     copa:pertenceAoGrupo copa:grupo_D ;
     copa:posicaoNoGrupo 3 ;
+    copa:representa copa:pais_paraguai ;
     copa:filiadaA copa:conf_CONMEBOL .
 
 copa:selecao_POR a copa:Selecao ;
@@ -778,6 +872,7 @@ copa:selecao_POR a copa:Selecao ;
     copa:codigoFIFA "POR" ;
     copa:pertenceAoGrupo copa:grupo_K ;
     copa:posicaoNoGrupo 2 ;
+    copa:representa copa:pais_portugal ;
     copa:filiadaA copa:conf_UEFA .
 
 copa:selecao_QAT a copa:Selecao ;
@@ -785,6 +880,7 @@ copa:selecao_QAT a copa:Selecao ;
     copa:codigoFIFA "QAT" ;
     copa:pertenceAoGrupo copa:grupo_B ;
     copa:posicaoNoGrupo 4 ;
+    copa:representa copa:pais_catar ;
     copa:filiadaA copa:conf_AFC .
 
 copa:selecao_RSA a copa:Selecao ;
@@ -792,6 +888,7 @@ copa:selecao_RSA a copa:Selecao ;
     copa:codigoFIFA "RSA" ;
     copa:pertenceAoGrupo copa:grupo_A ;
     copa:posicaoNoGrupo 2 ;
+    copa:representa copa:pais_africa_do_sul ;
     copa:filiadaA copa:conf_CAF .
 
 copa:selecao_SCO a copa:Selecao ;
@@ -799,6 +896,7 @@ copa:selecao_SCO a copa:Selecao ;
     copa:codigoFIFA "SCO" ;
     copa:pertenceAoGrupo copa:grupo_C ;
     copa:posicaoNoGrupo 3 ;
+    copa:representa copa:pais_escocia ;
     copa:filiadaA copa:conf_UEFA .
 
 copa:selecao_SEN a copa:Selecao ;
@@ -806,6 +904,7 @@ copa:selecao_SEN a copa:Selecao ;
     copa:codigoFIFA "SEN" ;
     copa:pertenceAoGrupo copa:grupo_I ;
     copa:posicaoNoGrupo 3 ;
+    copa:representa copa:pais_senegal ;
     copa:filiadaA copa:conf_CAF .
 
 copa:selecao_SUI a copa:Selecao ;
@@ -813,6 +912,7 @@ copa:selecao_SUI a copa:Selecao ;
     copa:codigoFIFA "SUI" ;
     copa:pertenceAoGrupo copa:grupo_B ;
     copa:posicaoNoGrupo 1 ;
+    copa:representa copa:pais_suica ;
     copa:filiadaA copa:conf_UEFA .
 
 copa:selecao_SWE a copa:Selecao ;
@@ -820,6 +920,7 @@ copa:selecao_SWE a copa:Selecao ;
     copa:codigoFIFA "SWE" ;
     copa:pertenceAoGrupo copa:grupo_F ;
     copa:posicaoNoGrupo 3 ;
+    copa:representa copa:pais_suecia ;
     copa:filiadaA copa:conf_UEFA .
 
 copa:selecao_TUN a copa:Selecao ;
@@ -827,6 +928,7 @@ copa:selecao_TUN a copa:Selecao ;
     copa:codigoFIFA "TUN" ;
     copa:pertenceAoGrupo copa:grupo_F ;
     copa:posicaoNoGrupo 4 ;
+    copa:representa copa:pais_tunisia ;
     copa:filiadaA copa:conf_CAF .
 
 copa:selecao_TUR a copa:Selecao ;
@@ -834,6 +936,7 @@ copa:selecao_TUR a copa:Selecao ;
     copa:codigoFIFA "TUR" ;
     copa:pertenceAoGrupo copa:grupo_D ;
     copa:posicaoNoGrupo 4 ;
+    copa:representa copa:pais_turquia ;
     copa:filiadaA copa:conf_UEFA .
 
 copa:selecao_URU a copa:Selecao ;
@@ -841,6 +944,7 @@ copa:selecao_URU a copa:Selecao ;
     copa:codigoFIFA "URU" ;
     copa:pertenceAoGrupo copa:grupo_H ;
     copa:posicaoNoGrupo 3 ;
+    copa:representa copa:pais_uruguai ;
     copa:filiadaA copa:conf_CONMEBOL .
 
 copa:selecao_USA a copa:Selecao ;
@@ -848,6 +952,7 @@ copa:selecao_USA a copa:Selecao ;
     copa:codigoFIFA "USA" ;
     copa:pertenceAoGrupo copa:grupo_D ;
     copa:posicaoNoGrupo 1 ;
+    copa:representa copa:pais_estados_unidos ;
     copa:filiadaA copa:conf_CONCACAF .
 
 copa:selecao_UZB a copa:Selecao ;
@@ -855,6 +960,7 @@ copa:selecao_UZB a copa:Selecao ;
     copa:codigoFIFA "UZB" ;
     copa:pertenceAoGrupo copa:grupo_K ;
     copa:posicaoNoGrupo 4 ;
+    copa:representa copa:pais_uzbequistao ;
     copa:filiadaA copa:conf_AFC .
 
 
@@ -876,32 +982,32 @@ copa:tecnico_stale_solbakken a copa:Tecnico ; rdfs:label "Ståle Solbakken" ; co
 # A-BOX 4/6 - ARBITROS (26)
 # ============================================================================
 
-copa:arbitro_adham_makhadmeh a copa:Arbitro ; rdfs:label "Adham Makhadmeh" ; copa:paisDeOrigem "Jordan" .
-copa:arbitro_alireza_faghani a copa:Arbitro ; rdfs:label "Alireza Faghani" ; copa:paisDeOrigem "Australia" .
-copa:arbitro_amin_omar a copa:Arbitro ; rdfs:label "Amin Omar" ; copa:paisDeOrigem "Egypt" .
-copa:arbitro_anthony_taylor a copa:Arbitro ; rdfs:label "Anthony Taylor" ; copa:paisDeOrigem "England" .
-copa:arbitro_clement_turpin a copa:Arbitro ; rdfs:label "Clément Turpin" ; copa:paisDeOrigem "France" .
-copa:arbitro_danny_makkelie a copa:Arbitro ; rdfs:label "Danny Makkelie" ; copa:paisDeOrigem "Netherlands" .
-copa:arbitro_drew_fischer a copa:Arbitro ; rdfs:label "Drew Fischer" ; copa:paisDeOrigem "Canada" .
-copa:arbitro_espen_eskas a copa:Arbitro ; rdfs:label "Espen Eskås" ; copa:paisDeOrigem "Norway" .
-copa:arbitro_facundo_tello a copa:Arbitro ; rdfs:label "Facundo Tello" ; copa:paisDeOrigem "Argentina" .
-copa:arbitro_francois_letexier a copa:Arbitro ; rdfs:label "François Letexier" ; copa:paisDeOrigem "France" .
-copa:arbitro_glenn_nyberg a copa:Arbitro ; rdfs:label "Glenn Nyberg" ; copa:paisDeOrigem "Sweden" .
-copa:arbitro_gustavo_tejera a copa:Arbitro ; rdfs:label "Gustavo Tejera" ; copa:paisDeOrigem "Uruguay" .
-copa:arbitro_ilgiz_tantashev a copa:Arbitro ; rdfs:label "Ilgiz Tantashev" ; copa:paisDeOrigem "Uzbekistan" .
-copa:arbitro_ismail_elfath a copa:Arbitro ; rdfs:label "Ismail Elfath" ; copa:paisDeOrigem "United States" .
-copa:arbitro_ivan_barton a copa:Arbitro ; rdfs:label "Iván Barton" ; copa:paisDeOrigem "El Salvador" .
-copa:arbitro_jalal_jayed a copa:Arbitro ; rdfs:label "Jalal Jayed" ; copa:paisDeOrigem "Morocco" .
-copa:arbitro_jesus_valenzuela a copa:Arbitro ; rdfs:label "Jesús Valenzuela" ; copa:paisDeOrigem "Venezuela" .
-copa:arbitro_joao_pinheiro a copa:Arbitro ; rdfs:label "João Pinheiro" ; copa:paisDeOrigem "Portugal" .
-copa:arbitro_maurizio_mariani a copa:Arbitro ; rdfs:label "Maurizio Mariani" ; copa:paisDeOrigem "Italy" .
-copa:arbitro_michael_oliver a copa:Arbitro ; rdfs:label "Michael Oliver" ; copa:paisDeOrigem "England" .
-copa:arbitro_raphael_claus a copa:Arbitro ; rdfs:label "Raphael Claus" ; copa:paisDeOrigem "Brazil" .
-copa:arbitro_said_martinez a copa:Arbitro ; rdfs:label "Saíd Martínez" ; copa:paisDeOrigem "Honduras" .
-copa:arbitro_slavko_vincic a copa:Arbitro ; rdfs:label "Slavko Vinčić" ; copa:paisDeOrigem "Slovenia" .
-copa:arbitro_tori_penso a copa:Arbitro ; rdfs:label "Tori Penso" ; copa:paisDeOrigem "United States" .
-copa:arbitro_wilton_sampaio a copa:Arbitro ; rdfs:label "Wilton Sampaio" ; copa:paisDeOrigem "Brazil" .
-copa:arbitro_yael_falcon a copa:Arbitro ; rdfs:label "Yael Falcón" ; copa:paisDeOrigem "Argentina" .
+copa:arbitro_adham_makhadmeh a copa:Arbitro ; rdfs:label "Adham Makhadmeh" ; copa:nacionalidade copa:pais_jordania .
+copa:arbitro_alireza_faghani a copa:Arbitro ; rdfs:label "Alireza Faghani" ; copa:nacionalidade copa:pais_australia .
+copa:arbitro_amin_omar a copa:Arbitro ; rdfs:label "Amin Omar" ; copa:nacionalidade copa:pais_egito .
+copa:arbitro_anthony_taylor a copa:Arbitro ; rdfs:label "Anthony Taylor" ; copa:nacionalidade copa:pais_inglaterra .
+copa:arbitro_clement_turpin a copa:Arbitro ; rdfs:label "Clément Turpin" ; copa:nacionalidade copa:pais_franca .
+copa:arbitro_danny_makkelie a copa:Arbitro ; rdfs:label "Danny Makkelie" ; copa:nacionalidade copa:pais_paises_baixos .
+copa:arbitro_drew_fischer a copa:Arbitro ; rdfs:label "Drew Fischer" ; copa:nacionalidade copa:pais_canada .
+copa:arbitro_espen_eskas a copa:Arbitro ; rdfs:label "Espen Eskås" ; copa:nacionalidade copa:pais_noruega .
+copa:arbitro_facundo_tello a copa:Arbitro ; rdfs:label "Facundo Tello" ; copa:nacionalidade copa:pais_argentina .
+copa:arbitro_francois_letexier a copa:Arbitro ; rdfs:label "François Letexier" ; copa:nacionalidade copa:pais_franca .
+copa:arbitro_glenn_nyberg a copa:Arbitro ; rdfs:label "Glenn Nyberg" ; copa:nacionalidade copa:pais_suecia .
+copa:arbitro_gustavo_tejera a copa:Arbitro ; rdfs:label "Gustavo Tejera" ; copa:nacionalidade copa:pais_uruguai .
+copa:arbitro_ilgiz_tantashev a copa:Arbitro ; rdfs:label "Ilgiz Tantashev" ; copa:nacionalidade copa:pais_uzbequistao .
+copa:arbitro_ismail_elfath a copa:Arbitro ; rdfs:label "Ismail Elfath" ; copa:nacionalidade copa:pais_estados_unidos .
+copa:arbitro_ivan_barton a copa:Arbitro ; rdfs:label "Iván Barton" ; copa:nacionalidade copa:pais_el_salvador .
+copa:arbitro_jalal_jayed a copa:Arbitro ; rdfs:label "Jalal Jayed" ; copa:nacionalidade copa:pais_marrocos .
+copa:arbitro_jesus_valenzuela a copa:Arbitro ; rdfs:label "Jesús Valenzuela" ; copa:nacionalidade copa:pais_venezuela .
+copa:arbitro_joao_pinheiro a copa:Arbitro ; rdfs:label "João Pinheiro" ; copa:nacionalidade copa:pais_portugal .
+copa:arbitro_maurizio_mariani a copa:Arbitro ; rdfs:label "Maurizio Mariani" ; copa:nacionalidade copa:pais_italia .
+copa:arbitro_michael_oliver a copa:Arbitro ; rdfs:label "Michael Oliver" ; copa:nacionalidade copa:pais_inglaterra .
+copa:arbitro_raphael_claus a copa:Arbitro ; rdfs:label "Raphael Claus" ; copa:nacionalidade copa:pais_brasil .
+copa:arbitro_said_martinez a copa:Arbitro ; rdfs:label "Saíd Martínez" ; copa:nacionalidade copa:pais_honduras .
+copa:arbitro_slavko_vincic a copa:Arbitro ; rdfs:label "Slavko Vinčić" ; copa:nacionalidade copa:pais_eslovenia .
+copa:arbitro_tori_penso a copa:Arbitro ; rdfs:label "Tori Penso" ; copa:nacionalidade copa:pais_estados_unidos .
+copa:arbitro_wilton_sampaio a copa:Arbitro ; rdfs:label "Wilton Sampaio" ; copa:nacionalidade copa:pais_brasil .
+copa:arbitro_yael_falcon a copa:Arbitro ; rdfs:label "Yael Falcón" ; copa:nacionalidade copa:pais_argentina .
 
 
 # ============================================================================
@@ -2810,10 +2916,10 @@ copa:jogador_julian_ryerson a copa:Defensor ;
 copa:partida_r32_1_rsa_can a copa:Partida16Avos ;
     rdfs:label "16-avos de final: África do Sul 0-1 Canadá" ;
     copa:dataPartida "2026-06-28"^^xsd:date ;
-    copa:mandante copa:selecao_RSA ;
-    copa:visitante copa:selecao_CAN ;
-    copa:golsMandante 0 ;
-    copa:golsVisitante 1 ;
+    copa:equipeA copa:selecao_RSA ;
+    copa:equipeB copa:selecao_CAN ;
+    copa:golsEquipeA 0 ;
+    copa:golsEquipeB 1 ;
     copa:publico 69237 ;
     copa:vencedora copa:selecao_CAN ;
     copa:sediadaEm copa:estadio_sofi_stadium .
@@ -2821,10 +2927,10 @@ copa:partida_r32_1_rsa_can a copa:Partida16Avos ;
 copa:partida_r32_2_bra_jpn a copa:Partida16Avos ;
     rdfs:label "16-avos de final: Brasil 2-1 Japão" ;
     copa:dataPartida "2026-06-29"^^xsd:date ;
-    copa:mandante copa:selecao_BRA ;
-    copa:visitante copa:selecao_JPN ;
-    copa:golsMandante 2 ;
-    copa:golsVisitante 1 ;
+    copa:equipeA copa:selecao_BRA ;
+    copa:equipeB copa:selecao_JPN ;
+    copa:golsEquipeA 2 ;
+    copa:golsEquipeB 1 ;
     copa:publico 68777 ;
     copa:vencedora copa:selecao_BRA ;
     copa:sediadaEm copa:estadio_nrg_stadium .
@@ -2832,10 +2938,10 @@ copa:partida_r32_2_bra_jpn a copa:Partida16Avos ;
 copa:partida_r32_3_ger_par a copa:Partida16Avos ;
     rdfs:label "16-avos de final: Alemanha 1-1 Paraguai (penaltis 3-4)" ;
     copa:dataPartida "2026-06-29"^^xsd:date ;
-    copa:mandante copa:selecao_GER ;
-    copa:visitante copa:selecao_PAR ;
-    copa:golsMandante 1 ;
-    copa:golsVisitante 1 ;
+    copa:equipeA copa:selecao_GER ;
+    copa:equipeB copa:selecao_PAR ;
+    copa:golsEquipeA 1 ;
+    copa:golsEquipeB 1 ;
     copa:publico 63945 ;
     copa:vencedora copa:selecao_PAR ;
     copa:sediadaEm copa:estadio_gillette_stadium .
@@ -2843,10 +2949,10 @@ copa:partida_r32_3_ger_par a copa:Partida16Avos ;
 copa:partida_r32_4_ned_mar a copa:Partida16Avos ;
     rdfs:label "16-avos de final: Países Baixos 1-1 Marrocos (penaltis 2-3)" ;
     copa:dataPartida "2026-06-29"^^xsd:date ;
-    copa:mandante copa:selecao_NED ;
-    copa:visitante copa:selecao_MAR ;
-    copa:golsMandante 1 ;
-    copa:golsVisitante 1 ;
+    copa:equipeA copa:selecao_NED ;
+    copa:equipeB copa:selecao_MAR ;
+    copa:golsEquipeA 1 ;
+    copa:golsEquipeB 1 ;
     copa:publico 51243 ;
     copa:vencedora copa:selecao_MAR ;
     copa:sediadaEm copa:estadio_estadio_bbva .
@@ -2854,10 +2960,10 @@ copa:partida_r32_4_ned_mar a copa:Partida16Avos ;
 copa:partida_r32_5_civ_nor a copa:Partida16Avos ;
     rdfs:label "16-avos de final: Costa do Marfim 1-2 Noruega" ;
     copa:dataPartida "2026-06-30"^^xsd:date ;
-    copa:mandante copa:selecao_CIV ;
-    copa:visitante copa:selecao_NOR ;
-    copa:golsMandante 1 ;
-    copa:golsVisitante 2 ;
+    copa:equipeA copa:selecao_CIV ;
+    copa:equipeB copa:selecao_NOR ;
+    copa:golsEquipeA 1 ;
+    copa:golsEquipeB 2 ;
     copa:publico 69665 ;
     copa:vencedora copa:selecao_NOR ;
     copa:sediadaEm copa:estadio_at_t_stadium .
@@ -2865,10 +2971,10 @@ copa:partida_r32_5_civ_nor a copa:Partida16Avos ;
 copa:partida_r32_6_fra_swe a copa:Partida16Avos ;
     rdfs:label "16-avos de final: França 3-0 Suécia" ;
     copa:dataPartida "2026-06-30"^^xsd:date ;
-    copa:mandante copa:selecao_FRA ;
-    copa:visitante copa:selecao_SWE ;
-    copa:golsMandante 3 ;
-    copa:golsVisitante 0 ;
+    copa:equipeA copa:selecao_FRA ;
+    copa:equipeB copa:selecao_SWE ;
+    copa:golsEquipeA 3 ;
+    copa:golsEquipeB 0 ;
     copa:publico 80663 ;
     copa:vencedora copa:selecao_FRA ;
     copa:sediadaEm copa:estadio_metlife_stadium .
@@ -2876,10 +2982,10 @@ copa:partida_r32_6_fra_swe a copa:Partida16Avos ;
 copa:partida_r32_7_mex_ecu a copa:Partida16Avos ;
     rdfs:label "16-avos de final: México 2-0 Equador" ;
     copa:dataPartida "2026-06-30"^^xsd:date ;
-    copa:mandante copa:selecao_MEX ;
-    copa:visitante copa:selecao_ECU ;
-    copa:golsMandante 2 ;
-    copa:golsVisitante 0 ;
+    copa:equipeA copa:selecao_MEX ;
+    copa:equipeB copa:selecao_ECU ;
+    copa:golsEquipeA 2 ;
+    copa:golsEquipeB 0 ;
     copa:publico 80824 ;
     copa:vencedora copa:selecao_MEX ;
     copa:sediadaEm copa:estadio_estadio_azteca .
@@ -2887,10 +2993,10 @@ copa:partida_r32_7_mex_ecu a copa:Partida16Avos ;
 copa:partida_r32_8_eng_cod a copa:Partida16Avos ;
     rdfs:label "16-avos de final: Inglaterra 2-1 República Democrática do Congo" ;
     copa:dataPartida "2026-07-01"^^xsd:date ;
-    copa:mandante copa:selecao_ENG ;
-    copa:visitante copa:selecao_COD ;
-    copa:golsMandante 2 ;
-    copa:golsVisitante 1 ;
+    copa:equipeA copa:selecao_ENG ;
+    copa:equipeB copa:selecao_COD ;
+    copa:golsEquipeA 2 ;
+    copa:golsEquipeB 1 ;
     copa:publico 68239 ;
     copa:vencedora copa:selecao_ENG ;
     copa:sediadaEm copa:estadio_mercedes_benz_stadium .
@@ -2898,10 +3004,10 @@ copa:partida_r32_8_eng_cod a copa:Partida16Avos ;
 copa:partida_r32_9_bel_sen a copa:Partida16Avos ;
     rdfs:label "16-avos de final: Bélgica 3-2 Senegal" ;
     copa:dataPartida "2026-07-01"^^xsd:date ;
-    copa:mandante copa:selecao_BEL ;
-    copa:visitante copa:selecao_SEN ;
-    copa:golsMandante 3 ;
-    copa:golsVisitante 2 ;
+    copa:equipeA copa:selecao_BEL ;
+    copa:equipeB copa:selecao_SEN ;
+    copa:golsEquipeA 3 ;
+    copa:golsEquipeB 2 ;
     copa:publico 66925 ;
     copa:vencedora copa:selecao_BEL ;
     copa:sediadaEm copa:estadio_lumen_field .
@@ -2909,10 +3015,10 @@ copa:partida_r32_9_bel_sen a copa:Partida16Avos ;
 copa:partida_r32_10_usa_bih a copa:Partida16Avos ;
     rdfs:label "16-avos de final: Estados Unidos 2-0 Bósnia e Herzegovina" ;
     copa:dataPartida "2026-07-01"^^xsd:date ;
-    copa:mandante copa:selecao_USA ;
-    copa:visitante copa:selecao_BIH ;
-    copa:golsMandante 2 ;
-    copa:golsVisitante 0 ;
+    copa:equipeA copa:selecao_USA ;
+    copa:equipeB copa:selecao_BIH ;
+    copa:golsEquipeA 2 ;
+    copa:golsEquipeB 0 ;
     copa:publico 68827 ;
     copa:vencedora copa:selecao_USA ;
     copa:sediadaEm copa:estadio_levi_s_stadium .
@@ -2920,10 +3026,10 @@ copa:partida_r32_10_usa_bih a copa:Partida16Avos ;
 copa:partida_r32_11_esp_aut a copa:Partida16Avos ;
     rdfs:label "16-avos de final: Espanha 3-0 Áustria" ;
     copa:dataPartida "2026-07-02"^^xsd:date ;
-    copa:mandante copa:selecao_ESP ;
-    copa:visitante copa:selecao_AUT ;
-    copa:golsMandante 3 ;
-    copa:golsVisitante 0 ;
+    copa:equipeA copa:selecao_ESP ;
+    copa:equipeB copa:selecao_AUT ;
+    copa:golsEquipeA 3 ;
+    copa:golsEquipeB 0 ;
     copa:publico 70492 ;
     copa:vencedora copa:selecao_ESP ;
     copa:sediadaEm copa:estadio_sofi_stadium .
@@ -2931,10 +3037,10 @@ copa:partida_r32_11_esp_aut a copa:Partida16Avos ;
 copa:partida_r32_12_por_cro a copa:Partida16Avos ;
     rdfs:label "16-avos de final: Portugal 2-1 Croácia" ;
     copa:dataPartida "2026-07-02"^^xsd:date ;
-    copa:mandante copa:selecao_POR ;
-    copa:visitante copa:selecao_CRO ;
-    copa:golsMandante 2 ;
-    copa:golsVisitante 1 ;
+    copa:equipeA copa:selecao_POR ;
+    copa:equipeB copa:selecao_CRO ;
+    copa:golsEquipeA 2 ;
+    copa:golsEquipeB 1 ;
     copa:publico 43036 ;
     copa:vencedora copa:selecao_POR ;
     copa:sediadaEm copa:estadio_bmo_field .
@@ -2942,10 +3048,10 @@ copa:partida_r32_12_por_cro a copa:Partida16Avos ;
 copa:partida_r32_13_sui_alg a copa:Partida16Avos ;
     rdfs:label "16-avos de final: Suíça 2-0 Argélia" ;
     copa:dataPartida "2026-07-02"^^xsd:date ;
-    copa:mandante copa:selecao_SUI ;
-    copa:visitante copa:selecao_ALG ;
-    copa:golsMandante 2 ;
-    copa:golsVisitante 0 ;
+    copa:equipeA copa:selecao_SUI ;
+    copa:equipeB copa:selecao_ALG ;
+    copa:golsEquipeA 2 ;
+    copa:golsEquipeB 0 ;
     copa:publico 52497 ;
     copa:vencedora copa:selecao_SUI ;
     copa:sediadaEm copa:estadio_bc_place .
@@ -2953,10 +3059,10 @@ copa:partida_r32_13_sui_alg a copa:Partida16Avos ;
 copa:partida_r32_14_aus_egy a copa:Partida16Avos ;
     rdfs:label "16-avos de final: Austrália 1-1 Egito (penaltis 2-4)" ;
     copa:dataPartida "2026-07-03"^^xsd:date ;
-    copa:mandante copa:selecao_AUS ;
-    copa:visitante copa:selecao_EGY ;
-    copa:golsMandante 1 ;
-    copa:golsVisitante 1 ;
+    copa:equipeA copa:selecao_AUS ;
+    copa:equipeB copa:selecao_EGY ;
+    copa:golsEquipeA 1 ;
+    copa:golsEquipeB 1 ;
     copa:publico 70244 ;
     copa:vencedora copa:selecao_EGY ;
     copa:sediadaEm copa:estadio_at_t_stadium .
@@ -2964,10 +3070,10 @@ copa:partida_r32_14_aus_egy a copa:Partida16Avos ;
 copa:partida_r32_15_arg_cpv a copa:Partida16Avos ;
     rdfs:label "16-avos de final: Argentina 3-2 Cabo Verde" ;
     copa:dataPartida "2026-07-03"^^xsd:date ;
-    copa:mandante copa:selecao_ARG ;
-    copa:visitante copa:selecao_CPV ;
-    copa:golsMandante 3 ;
-    copa:golsVisitante 2 ;
+    copa:equipeA copa:selecao_ARG ;
+    copa:equipeB copa:selecao_CPV ;
+    copa:golsEquipeA 3 ;
+    copa:golsEquipeB 2 ;
     copa:publico 64478 ;
     copa:vencedora copa:selecao_ARG ;
     copa:sediadaEm copa:estadio_hard_rock_stadium .
@@ -2975,10 +3081,10 @@ copa:partida_r32_15_arg_cpv a copa:Partida16Avos ;
 copa:partida_r32_16_col_gha a copa:Partida16Avos ;
     rdfs:label "16-avos de final: Colômbia 1-0 Gana" ;
     copa:dataPartida "2026-07-03"^^xsd:date ;
-    copa:mandante copa:selecao_COL ;
-    copa:visitante copa:selecao_GHA ;
-    copa:golsMandante 1 ;
-    copa:golsVisitante 0 ;
+    copa:equipeA copa:selecao_COL ;
+    copa:equipeB copa:selecao_GHA ;
+    copa:golsEquipeA 1 ;
+    copa:golsEquipeB 0 ;
     copa:publico 69045 ;
     copa:vencedora copa:selecao_COL ;
     copa:sediadaEm copa:estadio_arrowhead_stadium .
@@ -2986,10 +3092,10 @@ copa:partida_r32_16_col_gha a copa:Partida16Avos ;
 copa:partida_r16_1_can_mar a copa:PartidaOitavas ;
     rdfs:label "Oitavas de final: Canadá 0-3 Marrocos" ;
     copa:dataPartida "2026-07-04"^^xsd:date ;
-    copa:mandante copa:selecao_CAN ;
-    copa:visitante copa:selecao_MAR ;
-    copa:golsMandante 0 ;
-    copa:golsVisitante 3 ;
+    copa:equipeA copa:selecao_CAN ;
+    copa:equipeB copa:selecao_MAR ;
+    copa:golsEquipeA 0 ;
+    copa:golsEquipeB 3 ;
     copa:publico 68777 ;
     copa:vencedora copa:selecao_MAR ;
     copa:sediadaEm copa:estadio_nrg_stadium .
@@ -2997,10 +3103,10 @@ copa:partida_r16_1_can_mar a copa:PartidaOitavas ;
 copa:partida_r16_2_par_fra a copa:PartidaOitavas ;
     rdfs:label "Oitavas de final: Paraguai 0-1 França" ;
     copa:dataPartida "2026-07-04"^^xsd:date ;
-    copa:mandante copa:selecao_PAR ;
-    copa:visitante copa:selecao_FRA ;
-    copa:golsMandante 0 ;
-    copa:golsVisitante 1 ;
+    copa:equipeA copa:selecao_PAR ;
+    copa:equipeB copa:selecao_FRA ;
+    copa:golsEquipeA 0 ;
+    copa:golsEquipeB 1 ;
     copa:publico 68324 ;
     copa:vencedora copa:selecao_FRA ;
     copa:sediadaEm copa:estadio_lincoln_financial_field .
@@ -3008,10 +3114,10 @@ copa:partida_r16_2_par_fra a copa:PartidaOitavas ;
 copa:partida_r16_3_bra_nor a copa:PartidaOitavas ;
     rdfs:label "Oitavas de final: Brasil 1-2 Noruega" ;
     copa:dataPartida "2026-07-05"^^xsd:date ;
-    copa:mandante copa:selecao_BRA ;
-    copa:visitante copa:selecao_NOR ;
-    copa:golsMandante 1 ;
-    copa:golsVisitante 2 ;
+    copa:equipeA copa:selecao_BRA ;
+    copa:equipeB copa:selecao_NOR ;
+    copa:golsEquipeA 1 ;
+    copa:golsEquipeB 2 ;
     copa:publico 80663 ;
     copa:vencedora copa:selecao_NOR ;
     copa:sediadaEm copa:estadio_metlife_stadium .
@@ -3019,10 +3125,10 @@ copa:partida_r16_3_bra_nor a copa:PartidaOitavas ;
 copa:partida_r16_4_mex_eng a copa:PartidaOitavas ;
     rdfs:label "Oitavas de final: México 2-3 Inglaterra" ;
     copa:dataPartida "2026-07-05"^^xsd:date ;
-    copa:mandante copa:selecao_MEX ;
-    copa:visitante copa:selecao_ENG ;
-    copa:golsMandante 2 ;
-    copa:golsVisitante 3 ;
+    copa:equipeA copa:selecao_MEX ;
+    copa:equipeB copa:selecao_ENG ;
+    copa:golsEquipeA 2 ;
+    copa:golsEquipeB 3 ;
     copa:publico 80824 ;
     copa:vencedora copa:selecao_ENG ;
     copa:sediadaEm copa:estadio_estadio_azteca .
@@ -3030,10 +3136,10 @@ copa:partida_r16_4_mex_eng a copa:PartidaOitavas ;
 copa:partida_r16_5_por_esp a copa:PartidaOitavas ;
     rdfs:label "Oitavas de final: Portugal 0-1 Espanha" ;
     copa:dataPartida "2026-07-06"^^xsd:date ;
-    copa:mandante copa:selecao_POR ;
-    copa:visitante copa:selecao_ESP ;
-    copa:golsMandante 0 ;
-    copa:golsVisitante 1 ;
+    copa:equipeA copa:selecao_POR ;
+    copa:equipeB copa:selecao_ESP ;
+    copa:golsEquipeA 0 ;
+    copa:golsEquipeB 1 ;
     copa:publico 70649 ;
     copa:vencedora copa:selecao_ESP ;
     copa:sediadaEm copa:estadio_at_t_stadium .
@@ -3041,10 +3147,10 @@ copa:partida_r16_5_por_esp a copa:PartidaOitavas ;
 copa:partida_r16_6_usa_bel a copa:PartidaOitavas ;
     rdfs:label "Oitavas de final: Estados Unidos 1-4 Bélgica" ;
     copa:dataPartida "2026-07-06"^^xsd:date ;
-    copa:mandante copa:selecao_USA ;
-    copa:visitante copa:selecao_BEL ;
-    copa:golsMandante 1 ;
-    copa:golsVisitante 4 ;
+    copa:equipeA copa:selecao_USA ;
+    copa:equipeB copa:selecao_BEL ;
+    copa:golsEquipeA 1 ;
+    copa:golsEquipeB 4 ;
     copa:publico 66925 ;
     copa:vencedora copa:selecao_BEL ;
     copa:sediadaEm copa:estadio_lumen_field .
@@ -3052,10 +3158,10 @@ copa:partida_r16_6_usa_bel a copa:PartidaOitavas ;
 copa:partida_r16_7_arg_egy a copa:PartidaOitavas ;
     rdfs:label "Oitavas de final: Argentina 3-2 Egito" ;
     copa:dataPartida "2026-07-07"^^xsd:date ;
-    copa:mandante copa:selecao_ARG ;
-    copa:visitante copa:selecao_EGY ;
-    copa:golsMandante 3 ;
-    copa:golsVisitante 2 ;
+    copa:equipeA copa:selecao_ARG ;
+    copa:equipeB copa:selecao_EGY ;
+    copa:golsEquipeA 3 ;
+    copa:golsEquipeB 2 ;
     copa:publico 68239 ;
     copa:vencedora copa:selecao_ARG ;
     copa:sediadaEm copa:estadio_mercedes_benz_stadium .
@@ -3063,10 +3169,10 @@ copa:partida_r16_7_arg_egy a copa:PartidaOitavas ;
 copa:partida_r16_8_sui_col a copa:PartidaOitavas ;
     rdfs:label "Oitavas de final: Suíça 0-0 Colômbia (penaltis 4-3)" ;
     copa:dataPartida "2026-07-07"^^xsd:date ;
-    copa:mandante copa:selecao_SUI ;
-    copa:visitante copa:selecao_COL ;
-    copa:golsMandante 0 ;
-    copa:golsVisitante 0 ;
+    copa:equipeA copa:selecao_SUI ;
+    copa:equipeB copa:selecao_COL ;
+    copa:golsEquipeA 0 ;
+    copa:golsEquipeB 0 ;
     copa:publico 52497 ;
     copa:vencedora copa:selecao_SUI ;
     copa:sediadaEm copa:estadio_bc_place .
@@ -3074,10 +3180,10 @@ copa:partida_r16_8_sui_col a copa:PartidaOitavas ;
 copa:partida_qf1_fra_mar a copa:PartidaQuartas ;
     rdfs:label "Quartas de final: França 2-0 Marrocos" ;
     copa:dataPartida "2026-07-09"^^xsd:date ;
-    copa:mandante copa:selecao_FRA ;
-    copa:visitante copa:selecao_MAR ;
-    copa:golsMandante 2 ;
-    copa:golsVisitante 0 ;
+    copa:equipeA copa:selecao_FRA ;
+    copa:equipeB copa:selecao_MAR ;
+    copa:golsEquipeA 2 ;
+    copa:golsEquipeB 0 ;
     copa:publico 63811 ;
     copa:vencedora copa:selecao_FRA ;
     copa:sediadaEm copa:estadio_gillette_stadium .
@@ -3085,10 +3191,10 @@ copa:partida_qf1_fra_mar a copa:PartidaQuartas ;
 copa:partida_qf2_esp_bel a copa:PartidaQuartas ;
     rdfs:label "Quartas de final: Espanha 2-1 Bélgica" ;
     copa:dataPartida "2026-07-10"^^xsd:date ;
-    copa:mandante copa:selecao_ESP ;
-    copa:visitante copa:selecao_BEL ;
-    copa:golsMandante 2 ;
-    copa:golsVisitante 1 ;
+    copa:equipeA copa:selecao_ESP ;
+    copa:equipeB copa:selecao_BEL ;
+    copa:golsEquipeA 2 ;
+    copa:golsEquipeB 1 ;
     copa:publico 70492 ;
     copa:vencedora copa:selecao_ESP ;
     copa:sediadaEm copa:estadio_sofi_stadium .
@@ -3096,10 +3202,10 @@ copa:partida_qf2_esp_bel a copa:PartidaQuartas ;
 copa:partida_qf3_nor_eng a copa:PartidaQuartas ;
     rdfs:label "Quartas de final: Noruega 1-2 Inglaterra" ;
     copa:dataPartida "2026-07-11"^^xsd:date ;
-    copa:mandante copa:selecao_NOR ;
-    copa:visitante copa:selecao_ENG ;
-    copa:golsMandante 1 ;
-    copa:golsVisitante 2 ;
+    copa:equipeA copa:selecao_NOR ;
+    copa:equipeB copa:selecao_ENG ;
+    copa:golsEquipeA 1 ;
+    copa:golsEquipeB 2 ;
     copa:publico 64478 ;
     copa:vencedora copa:selecao_ENG ;
     copa:sediadaEm copa:estadio_hard_rock_stadium .
@@ -3107,10 +3213,10 @@ copa:partida_qf3_nor_eng a copa:PartidaQuartas ;
 copa:partida_qf4_arg_sui a copa:PartidaQuartas ;
     rdfs:label "Quartas de final: Argentina 3-1 Suíça" ;
     copa:dataPartida "2026-07-11"^^xsd:date ;
-    copa:mandante copa:selecao_ARG ;
-    copa:visitante copa:selecao_SUI ;
-    copa:golsMandante 3 ;
-    copa:golsVisitante 1 ;
+    copa:equipeA copa:selecao_ARG ;
+    copa:equipeB copa:selecao_SUI ;
+    copa:golsEquipeA 3 ;
+    copa:golsEquipeB 1 ;
     copa:publico 69045 ;
     copa:vencedora copa:selecao_ARG ;
     copa:sediadaEm copa:estadio_arrowhead_stadium .
@@ -3118,10 +3224,10 @@ copa:partida_qf4_arg_sui a copa:PartidaQuartas ;
 copa:partida_sf1_fra_esp a copa:PartidaSemifinal ;
     rdfs:label "Semifinal: França 0-2 Espanha" ;
     copa:dataPartida "2026-07-14"^^xsd:date ;
-    copa:mandante copa:selecao_FRA ;
-    copa:visitante copa:selecao_ESP ;
-    copa:golsMandante 0 ;
-    copa:golsVisitante 2 ;
+    copa:equipeA copa:selecao_FRA ;
+    copa:equipeB copa:selecao_ESP ;
+    copa:golsEquipeA 0 ;
+    copa:golsEquipeB 2 ;
     copa:publico 70176 ;
     copa:vencedora copa:selecao_ESP ;
     copa:sediadaEm copa:estadio_at_t_stadium .
@@ -3129,10 +3235,10 @@ copa:partida_sf1_fra_esp a copa:PartidaSemifinal ;
 copa:partida_sf2_eng_arg a copa:PartidaSemifinal ;
     rdfs:label "Semifinal: Inglaterra 1-2 Argentina" ;
     copa:dataPartida "2026-07-15"^^xsd:date ;
-    copa:mandante copa:selecao_ENG ;
-    copa:visitante copa:selecao_ARG ;
-    copa:golsMandante 1 ;
-    copa:golsVisitante 2 ;
+    copa:equipeA copa:selecao_ENG ;
+    copa:equipeB copa:selecao_ARG ;
+    copa:golsEquipeA 1 ;
+    copa:golsEquipeB 2 ;
     copa:publico 68239 ;
     copa:vencedora copa:selecao_ARG ;
     copa:sediadaEm copa:estadio_mercedes_benz_stadium .
@@ -3140,10 +3246,10 @@ copa:partida_sf2_eng_arg a copa:PartidaSemifinal ;
 copa:partida_3rd_fra_eng a copa:PartidaTerceiroLugar ;
     rdfs:label "Disputa do terceiro lugar: França 4-6 Inglaterra" ;
     copa:dataPartida "2026-07-18"^^xsd:date ;
-    copa:mandante copa:selecao_FRA ;
-    copa:visitante copa:selecao_ENG ;
-    copa:golsMandante 4 ;
-    copa:golsVisitante 6 ;
+    copa:equipeA copa:selecao_FRA ;
+    copa:equipeB copa:selecao_ENG ;
+    copa:golsEquipeA 4 ;
+    copa:golsEquipeB 6 ;
     copa:publico 64478 ;
     copa:vencedora copa:selecao_ENG ;
     copa:sediadaEm copa:estadio_hard_rock_stadium .
@@ -3151,10 +3257,10 @@ copa:partida_3rd_fra_eng a copa:PartidaTerceiroLugar ;
 copa:partida_final_esp_arg a copa:PartidaFinal ;
     rdfs:label "Final: Espanha 1-0 Argentina" ;
     copa:dataPartida "2026-07-19"^^xsd:date ;
-    copa:mandante copa:selecao_ESP ;
-    copa:visitante copa:selecao_ARG ;
-    copa:golsMandante 1 ;
-    copa:golsVisitante 0 ;
+    copa:equipeA copa:selecao_ESP ;
+    copa:equipeB copa:selecao_ARG ;
+    copa:golsEquipeA 1 ;
+    copa:golsEquipeB 0 ;
     copa:publico 80663 ;
     copa:vencedora copa:selecao_ESP ;
     copa:sediadaEm copa:estadio_metlife_stadium .
@@ -3162,10 +3268,10 @@ copa:partida_final_esp_arg a copa:PartidaFinal ;
 copa:partida_a1_mex_rsa a copa:PartidaFaseGrupos ;
     rdfs:label "Fase de grupos: México 2-0 África do Sul" ;
     copa:dataPartida "2026-06-11"^^xsd:date ;
-    copa:mandante copa:selecao_MEX ;
-    copa:visitante copa:selecao_RSA ;
-    copa:golsMandante 2 ;
-    copa:golsVisitante 0 ;
+    copa:equipeA copa:selecao_MEX ;
+    copa:equipeB copa:selecao_RSA ;
+    copa:golsEquipeA 2 ;
+    copa:golsEquipeB 0 ;
     copa:publico 80824 ;
     copa:vencedora copa:selecao_MEX ;
     copa:sediadaEm copa:estadio_estadio_azteca .
@@ -3173,10 +3279,10 @@ copa:partida_a1_mex_rsa a copa:PartidaFaseGrupos ;
 copa:partida_a2_kor_cze a copa:PartidaFaseGrupos ;
     rdfs:label "Fase de grupos: Coreia do Sul 2-1 Chéquia" ;
     copa:dataPartida "2026-06-11"^^xsd:date ;
-    copa:mandante copa:selecao_KOR ;
-    copa:visitante copa:selecao_CZE ;
-    copa:golsMandante 2 ;
-    copa:golsVisitante 1 ;
+    copa:equipeA copa:selecao_KOR ;
+    copa:equipeB copa:selecao_CZE ;
+    copa:golsEquipeA 2 ;
+    copa:golsEquipeB 1 ;
     copa:publico 44985 ;
     copa:vencedora copa:selecao_KOR ;
     copa:sediadaEm copa:estadio_estadio_akron .
@@ -3184,20 +3290,20 @@ copa:partida_a2_kor_cze a copa:PartidaFaseGrupos ;
 copa:partida_a3_cze_rsa a copa:PartidaFaseGrupos ;
     rdfs:label "Fase de grupos: Chéquia 1-1 África do Sul" ;
     copa:dataPartida "2026-06-18"^^xsd:date ;
-    copa:mandante copa:selecao_CZE ;
-    copa:visitante copa:selecao_RSA ;
-    copa:golsMandante 1 ;
-    copa:golsVisitante 1 ;
+    copa:equipeA copa:selecao_CZE ;
+    copa:equipeB copa:selecao_RSA ;
+    copa:golsEquipeA 1 ;
+    copa:golsEquipeB 1 ;
     copa:publico 67442 ;
     copa:sediadaEm copa:estadio_mercedes_benz_stadium .
 
 copa:partida_a4_mex_kor a copa:PartidaFaseGrupos ;
     rdfs:label "Fase de grupos: México 1-0 Coreia do Sul" ;
     copa:dataPartida "2026-06-18"^^xsd:date ;
-    copa:mandante copa:selecao_MEX ;
-    copa:visitante copa:selecao_KOR ;
-    copa:golsMandante 1 ;
-    copa:golsVisitante 0 ;
+    copa:equipeA copa:selecao_MEX ;
+    copa:equipeB copa:selecao_KOR ;
+    copa:golsEquipeA 1 ;
+    copa:golsEquipeB 0 ;
     copa:publico 45522 ;
     copa:vencedora copa:selecao_MEX ;
     copa:sediadaEm copa:estadio_estadio_akron .
@@ -3205,10 +3311,10 @@ copa:partida_a4_mex_kor a copa:PartidaFaseGrupos ;
 copa:partida_a5_cze_mex a copa:PartidaFaseGrupos ;
     rdfs:label "Fase de grupos: Chéquia 0-3 México" ;
     copa:dataPartida "2026-06-24"^^xsd:date ;
-    copa:mandante copa:selecao_CZE ;
-    copa:visitante copa:selecao_MEX ;
-    copa:golsMandante 0 ;
-    copa:golsVisitante 3 ;
+    copa:equipeA copa:selecao_CZE ;
+    copa:equipeB copa:selecao_MEX ;
+    copa:golsEquipeA 0 ;
+    copa:golsEquipeB 3 ;
     copa:publico 80824 ;
     copa:vencedora copa:selecao_MEX ;
     copa:sediadaEm copa:estadio_estadio_azteca .
@@ -3216,10 +3322,10 @@ copa:partida_a5_cze_mex a copa:PartidaFaseGrupos ;
 copa:partida_a6_rsa_kor a copa:PartidaFaseGrupos ;
     rdfs:label "Fase de grupos: África do Sul 1-0 Coreia do Sul" ;
     copa:dataPartida "2026-06-24"^^xsd:date ;
-    copa:mandante copa:selecao_RSA ;
-    copa:visitante copa:selecao_KOR ;
-    copa:golsMandante 1 ;
-    copa:golsVisitante 0 ;
+    copa:equipeA copa:selecao_RSA ;
+    copa:equipeB copa:selecao_KOR ;
+    copa:golsEquipeA 1 ;
+    copa:golsEquipeB 0 ;
     copa:publico 51243 ;
     copa:vencedora copa:selecao_RSA ;
     copa:sediadaEm copa:estadio_estadio_bbva .

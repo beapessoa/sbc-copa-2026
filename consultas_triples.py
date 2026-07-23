@@ -121,20 +121,20 @@ def consulta_5(g):
 def consulta_6(g):
     """Padrao (S, P, O), sem coringa.
 
-    Busca: se a Espanha foi a mandante da final.
+    Busca: se a Espanha e a equipe A da final.
     Esperado: True. Com os tres termos fixos o padrao vira teste de existencia.
     """
     util.consulta(
         "Parte 1", 6,
-        "Teste de existencia: a Espanha foi a mandante da final?",
+        "Teste de existencia: a Espanha e a equipe A da final?",
         "verificar um fato pontual sem trazer dado nenhum de volta",
-        "Padrao: (copa:partida_final_esp_arg, copa:mandante, copa:selecao_ESP)",
+        "Padrao: (copa:partida_final_esp_arg, copa:equipeA, copa:selecao_ESP)",
     )
-    existe = (COPA.partida_final_esp_arg, COPA.mandante, COPA.selecao_ESP) in g
+    existe = (COPA.partida_final_esp_arg, COPA.equipeA, COPA.selecao_ESP) in g
     print(f"  Resposta: {existe}")
 
-    falso = (COPA.partida_final_esp_arg, COPA.mandante, COPA.selecao_BRA) in g
-    print(f"  Contraprova (o Brasil foi mandante da final?): {falso}")
+    falso = (COPA.partida_final_esp_arg, COPA.equipeA, COPA.selecao_BRA) in g
+    print(f"  Contraprova (o Brasil e a equipe A da final?): {falso}")
 
 
 def consulta_7(g):

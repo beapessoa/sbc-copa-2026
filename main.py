@@ -8,6 +8,8 @@ OWL-RL e executa as duas partes de consultas.
 
 import sys
 
+from rdflib import RDF
+
 import base
 import consultas_sparql
 import consultas_triples
@@ -23,6 +25,51 @@ def sonda_inferencia(g, momento):
     n = int(list(g.query(q))[0][0])
     print(f"  {momento:<24} copa:selecao_ESP copa:temJogador ?j  ->  {n} resultado(s)")
     return n
+
+
+def consistencia(inconsistencias):
+    """Mostra que as construcoes de disjuncao sao verificadas de fato.
+
+    Primeiro reporta o resultado sobre a base real. Depois repete o reasoner
+    sobre uma copia com um erro plantado de proposito, para provar que a
+    verificacao acusa quando ha o que acusar.
+    """
+    util.banner("VERIFICACAO DE CONSISTENCIA")
+    print(f"  Base real: {len(inconsistencias)} inconsistencia(s) encontrada(s).")
+    for msg in inconsistencias:
+        print(f"    - {msg}")
+    print()
+
+    from rdflib import Graph
+    from base import COPA
+
+    suja = Graph()
+    for tripla in base.carregar():
+        suja.add(tripla)
+    # a Espanha ja e a equipe A da final; declara-la tambem como equipe B viola
+    # copa:equipeA owl:propertyDisjointWith copa:equipeB
+    suja.add((COPA.partida_final_esp_arg, COPA.equipeB, COPA.selecao_ESP))
+    # e o goleiro Unai Simon como atacante viola copa:Goleiro owl:disjointWith
+    # copa:Atacante
+    suja.add((COPA.jogador_unai_simon, RDF.type, COPA.Atacante))
+
+    _, _, erros = base.aplicar_reasoner(suja)
+    print("  Copia com dois erros plantados de proposito:")
+    print(f"  {len(erros)} inconsistencia(s) encontrada(s).")
+    # ordenado: o owlrl coleta os erros na ordem em que percorre o grafo, que
+    # nao e estavel entre execucoes
+    for msg in sorted(str(m) for m in erros):
+        print(f"    - {msg}")
+
+    print()
+    if not inconsistencias and erros:
+        util.nota(
+            "A base passa e a copia adulterada e reprovada: owl:disjointWith e\n"
+            "owl:propertyDisjointWith estao sendo checados, nao apenas declarados."
+        )
+        return True
+    util.nota("ATENCAO: a verificacao de consistencia nao se comportou como esperado.")
+    return False
 
 
 def main():
@@ -53,9 +100,8 @@ def main():
     print()
     antes_sonda = sonda_inferencia(g, "ANTES do reasoner:")
 
-    antes, depois = base.aplicar_reasoner(g)
+    antes, depois, inconsistencias = base.aplicar_reasoner(g)
     print()
-    print("  DeductiveClosure(OWLRL_Semantics).expand(g)")
     print(f"  Triplas: {antes} -> {depois}  (+{depois - antes} inferidas)")
     print()
 
@@ -69,6 +115,8 @@ def main():
     else:
         util.nota("ATENCAO: a sonda de inferencia nao se comportou como esperado.")
         tudo_ok = False
+
+    tudo_ok = consistencia(inconsistencias) and tudo_ok
 
     # ---------------------------------------------------------------- #
     # 4. Consultas

@@ -4,36 +4,37 @@
 ============================================================================================
   Base de conhecimento em RDF/RDFS/OWL consultada com rdflib e SPARQL.
   Arquivo: /Users/bea/Documents/sbc-copa-2026/data/copa2026.ttl
-  Carregado sem erros: 2904 triplas.
+  Carregado sem erros: 3056 triplas.
 
 ============================================================================================
                          CONFERENCIA DOS REQUISITOS MINIMOS DA BASE                         
 ============================================================================================
   Requisitos do enunciado:
-  [OK  ] Classes em hierarquia                              27   (minimo 8)
+  [OK  ] Classes em hierarquia                              26   (minimo 8)
   [OK  ] Niveis abaixo da raiz (rdfs:subClassOf)             2   (minimo 2)
-  [OK  ] Propriedades de objeto                             12   (minimo 5)
-  [OK  ] Propriedades de dados                              14   (minimo 5)
-  [OK  ] Propriedades no total                              26   (minimo 10)
-  [OK  ] Propriedades com rdfs:domain                       26   (esperado 26)
-  [OK  ] Propriedades com rdfs:range                        26   (esperado 26)
-  [OK  ] Instancias                                        381   (minimo 25)
-  [OK  ] Triplas no arquivo Turtle                        2904   (minimo 50)
+  [OK  ] Propriedades de objeto                             14   (minimo 5)
+  [OK  ] Propriedades de dados                              13   (minimo 5)
+  [OK  ] Propriedades no total                              27   (minimo 10)
+  [OK  ] Propriedades com rdfs:domain                       27   (esperado 27)
+  [OK  ] Propriedades com rdfs:range                        27   (esperado 27)
+  [OK  ] Instancias                                        431   (minimo 25)
+  [OK  ] Triplas no arquivo Turtle                        3056   (minimo 50)
   [OK  ] Construcoes OWL distintas                           7   (minimo 5)
 
   Construcoes OWL declaradas:
     - owl:inverseOf                      1 ocorrencia(s)
     - owl:TransitiveProperty             1 ocorrencia(s)
     - owl:SymmetricProperty              1 ocorrencia(s)
-    - owl:FunctionalProperty            13 ocorrencia(s)
+    - owl:FunctionalProperty            15 ocorrencia(s)
     - owl:InverseFunctionalProperty      1 ocorrencia(s)
     - owl:disjointWith                   9 ocorrencia(s)
-    - owl:equivalentClass                1 ocorrencia(s)
+    - owl:propertyDisjointWith           1 ocorrencia(s)
 
   Instancias por classe (contagem direta, sem inferencia):
     - Defensor                   67
     - MeioCampista               63
     - Atacante                   54
+    - Pais                       53
     - Selecao                    48
     - Arbitro                    26
     - Goleiro                    24
@@ -46,7 +47,6 @@
     - Confederacao                6
     - PartidaFaseGrupos           6
     - PartidaQuartas              4
-    - Pais                        3
     - PartidaSemifinal            2
     - PartidaFinal                1
     - PartidaTerceiroLugar        1
@@ -65,13 +65,26 @@
 
   ANTES do reasoner:       copa:selecao_ESP copa:temJogador ?j  ->  0 resultado(s)
 
-  DeductiveClosure(OWLRL_Semantics).expand(g)
-  Triplas: 2904 -> 6531  (+3627 inferidas)
+  Triplas: 3056 -> 6760  (+3704 inferidas)
 
   DEPOIS do reasoner:      copa:selecao_ESP copa:temJogador ?j  ->  26 resultado(s)
 
   >> De 0 para 26: owl:inverseOf derivou o elenco inteiro sem
   >> nenhuma tripla copa:temJogador escrita no arquivo.
+
+============================================================================================
+                                VERIFICACAO DE CONSISTENCIA                                 
+============================================================================================
+  Base real: 0 inconsistencia(s) encontrada(s).
+
+  Copia com dois erros plantados de proposito:
+  3 inconsistencia(s) encontrada(s).
+    - Disjoint classes http://ufpb.br/sbc/copa2026#Goleiro and http://ufpb.br/sbc/copa2026#Atacante have a common individual http://ufpb.br/sbc/copa2026#jogador_unai_simon
+    - Erroneous usage of disjoint properties http://ufpb.br/sbc/copa2026#equipeA and http://ufpb.br/sbc/copa2026#equipeB on http://ufpb.br/sbc/copa2026#partida_final_esp_arg and http://ufpb.br/sbc/copa2026#selecao_ARG
+    - Erroneous usage of disjoint properties http://ufpb.br/sbc/copa2026#equipeA and http://ufpb.br/sbc/copa2026#equipeB on http://ufpb.br/sbc/copa2026#partida_final_esp_arg and http://ufpb.br/sbc/copa2026#selecao_ESP
+
+  >> A base passa e a copia adulterada e reprovada: owl:disjointWith e
+  >> owl:propertyDisjointWith estao sendo checados, nao apenas declarados.
 
 ============================================================================================
                             PARTE 1 - CONSULTAS COM g.triples()                             
@@ -88,14 +101,14 @@
   label           | Espanha
   pertenceAoGrupo | grupo_H
   posicaoNoGrupo  | 1
+  representa      | pais_espanha
   sameAs          | selecao_ESP
   temJogador      | jogador_alex_baena
   temJogador      | jogador_alex_grimaldo
   temJogador      | jogador_aymeric_laporte
   temJogador      | jogador_borja_iglesias
   temJogador      | jogador_dani_olmo
-  temJogador      | jogador_david_raya
-  ... (+22 linhas; total de 34)
+  ... (+23 linhas; total de 35)
 
 [Parte 1 | Consulta 2] Capacidade de todos os estadios da Copa
   Proposito: varrer uma propriedade de dados inteira, sem fixar sujeito
@@ -170,12 +183,12 @@
   4         | Chéquia       | CZE
   (4 linhas)
 
-[Parte 1 | Consulta 6] Teste de existencia: a Espanha foi a mandante da final?
+[Parte 1 | Consulta 6] Teste de existencia: a Espanha e a equipe A da final?
   Proposito: verificar um fato pontual sem trazer dado nenhum de volta
-  Padrao: (copa:partida_final_esp_arg, copa:mandante, copa:selecao_ESP)
+  Padrao: (copa:partida_final_esp_arg, copa:equipeA, copa:selecao_ESP)
 
   Resposta: True
-  Contraprova (o Brasil foi mandante da final?): False
+  Contraprova (o Brasil e a equipe A da final?): False
 
 [Parte 1 | Consulta 7] Todo recurso que se relaciona com o MetLife Stadium
   Proposito: descobrir as conexoes de entrada de um recurso, sem fixar a propriedade
@@ -236,7 +249,7 @@
   (5 linhas)
 
 [Parte 2 | Consulta 4] Artilharia por selecao nas partidas modeladas
-  Proposito: somar os gols de cada selecao como mandante e como visitante, mantendo quem fez 5 ou mais
+  Proposito: somar os gols de cada selecao nos dois lados da tabela, mantendo quem fez 5 ou mais
   Clausulas: UNION, GROUP BY, SUM, COUNT, HAVING e ORDER BY
 
   selecao    | gols marcados | partidas
@@ -269,7 +282,7 @@
   Proposito: reduzir 38 partidas a um grafo de confrontos, sem placar, data ou local
   Forma: CONSTRUCT (devolve um grafo RDF novo, nao uma tabela)
 
-  Grafo construido: 38 triplas copa:enfrentou, uma por partida
+  Grafo construido: 38 triplas copa:enfrentou, uma por partida, so no sentido equipe A -> equipe B
 
   selecao   | enfrentou
   ----------+-----------
@@ -282,7 +295,7 @@
   Brasil    | Noruega
   Bélgica   | Senegal
   ... (+30 linhas; total de 38)
-  >> ARG -> ESP nao esta entre elas: na final a Espanha era a mandante, entao
+  >> ARG -> ESP nao esta entre elas: na final a Espanha e a equipe A, entao
   >> so foi escrita ESP -> ARG.
 
 [Parte 2 | Consulta 7] A Argentina enfrentou a Espanha?

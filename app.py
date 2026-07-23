@@ -201,7 +201,7 @@ elif secao == "Taxonomia":
         st.subheader("Local")
         st.code(
             "Local\n"
-            "├── Pais            (3)\n"
+            "├── Pais            (53)\n"
             "├── Cidade\n"
             "│   └── CidadeSede  (16)\n"
             "└── Estadio         (16)",
@@ -209,7 +209,8 @@ elif secao == "Taxonomia":
         )
         st.caption(
             "Só os elos curtos são escritos. O vínculo estádio → país vem da "
-            "transitividade."
+            "transitividade. O mesmo recurso de país serve de sede, de país "
+            "representado pela seleção e de federação do árbitro."
         )
 
     with dir_:
@@ -228,8 +229,7 @@ elif secao == "Taxonomia":
         )
         st.caption(
             "A fase é a classe da partida. Com 48 seleções o mata-mata começa nos "
-            "16-avos. `PartidaMataMata` é `owl:equivalentClass` de "
-            "`PartidaEliminatoria`."
+            "16-avos, não nas oitavas."
         )
 
         st.subheader("Entidades organizacionais")
@@ -250,20 +250,19 @@ elif secao == "Taxonomia":
     st.subheader("Propriedades")
     a, b = st.columns(2)
     a.markdown(
-        "**De objeto (12)**\n\n"
+        "**De objeto (14)**\n\n"
         "`jogaPor` · `temJogador` · `treina` · `pertenceAoGrupo` · `filiadaA` · "
-        "`mandante` · `visitante` · `sediadaEm` · `vencedora` · `apitou` · "
-        "`localizadoEm` · `enfrentou`"
+        "`equipeA` · `equipeB` · `sediadaEm` · `vencedora` · `apitou` · "
+        "`representa` · `nacionalidade` · `localizadoEm` · `enfrentou`"
     )
     b.markdown(
-        "**De dados (14)**\n\n"
+        "**De dados (13)**\n\n"
         "`numeroCamisa` · `dataNascimento` · `clubeAtual` · `jogosPelaSelecao` · "
-        "`golsPelaSelecao` · `paisDeOrigem` · `capacidade` · `dataPartida` · "
-        "`golsMandante` · `golsVisitante` · `publico` · `letraGrupo` · "
-        "`posicaoNoGrupo` · `codigoFIFA`"
+        "`golsPelaSelecao` · `capacidade` · `dataPartida` · `golsEquipeA` · "
+        "`golsEquipeB` · `publico` · `letraGrupo` · `posicaoNoGrupo` · `codigoFIFA`"
     )
     st.caption(
-        "Todas as 26 declaram `rdfs:domain` e `rdfs:range`. Dois `rdfs:domain` na "
+        "Todas as 27 declaram `rdfs:domain` e `rdfs:range`. Dois `rdfs:domain` na "
         "mesma propriedade significariam interseção de classes, não união — por "
         "isso os rótulos usam `rdfs:label`."
     )
@@ -321,8 +320,8 @@ elif secao == "Inferência OWL":
 
     else:
         st.markdown(
-            "O CONSTRUCT monta os confrontos só no sentido mandante → visitante. "
-            "Na final a Espanha era mandante, então só existe ESP → ARG."
+            "O CONSTRUCT monta os confrontos só no sentido equipe A → equipe B. "
+            "Na final a Espanha é a equipe A, então só existe ESP → ARG."
         )
         consulta = """
         PREFIX copa: <http://ufpb.br/sbc/copa2026#>
@@ -340,7 +339,7 @@ elif secao == "Inferência OWL":
         construct = """
         PREFIX copa: <http://ufpb.br/sbc/copa2026#>
         CONSTRUCT { ?a copa:enfrentou ?b }
-        WHERE { ?m copa:mandante ?a ; copa:visitante ?b . }
+        WHERE { ?m copa:equipeA ?a ; copa:equipeB ?b . }
         """
         g0, g1 = copia(g0), copia(g1)
         for grafo in (g0, g1):
@@ -380,8 +379,8 @@ elif secao == "Inferência OWL":
              "para quê": "chave global: \"BRA\" identifica a seleção entre bases"},
             {"construção": "owl:disjointWith", "onde": "9 pares de classes",
              "para quê": "ninguém é goleiro e atacante"},
-            {"construção": "owl:equivalentClass", "onde": "MataMata ≡ Eliminatoria",
-             "para quê": "integrar base que use o outro termo"},
+            {"construção": "owl:propertyDisjointWith", "onde": "equipeA ⊥ equipeB",
+             "para quê": "ninguém joga contra si mesmo"},
         ],
         width="stretch", hide_index=True,
     )
@@ -486,8 +485,9 @@ SELECT ?arbitro ?pais (COUNT(?m) AS ?partidas)
 WHERE {
     ?a a copa:Arbitro ;
        rdfs:label ?arbitro ;
-       copa:paisDeOrigem ?pais ;
+       copa:nacionalidade ?p ;
        copa:apitou ?m .
+    ?p rdfs:label ?pais .
 }
 GROUP BY ?arbitro ?pais
 ORDER BY DESC(?partidas) ?arbitro""",
@@ -498,6 +498,18 @@ WHERE { ?j a copa:Jogador ; copa:clubeAtual ?clube . }
 GROUP BY ?clube
 HAVING (COUNT(?j) >= 4)
 ORDER BY DESC(?convocados) ?clube""",
+        "Países que têm seleção e árbitro": """PREFIX copa: <http://ufpb.br/sbc/copa2026#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+# Só funciona porque a seleção e o árbitro apontam para o MESMO recurso de país
+SELECT ?pais (COUNT(DISTINCT ?a) AS ?arbitros)
+WHERE {
+    ?a a copa:Arbitro ; copa:nacionalidade ?p .
+    ?s copa:representa ?p .
+    ?p rdfs:label ?pais .
+}
+GROUP BY ?pais
+ORDER BY DESC(?arbitros) ?pais""",
         "Seleções por confederação": """PREFIX copa: <http://ufpb.br/sbc/copa2026#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
