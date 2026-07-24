@@ -352,16 +352,35 @@ elif secao == "Inferência OWL":
     st.code(textwrap.dedent(consulta).strip(), language="sparql")
 
     esq, dir_ = st.columns(2)
-    for coluna, grafo, titulo in [(esq, g0, "Sem reasoner"), (dir_, g1, "Com reasoner")]:
-        with coluna:
-            colunas, linhas = tabela_sparql(grafo, consulta)
-            if linhas:
-                st.success(f"**{titulo}** — {len(linhas)} resultado(s)")
-                st.dataframe(linhas, width="stretch", hide_index=True,
-                             height=min(400, 40 + 35 * len(linhas)))
-            else:
-                st.error(f"**{titulo}** — 0 resultados")
-                st.caption("A base, sozinha, não responde.")
+    _, sem = tabela_sparql(g0, consulta)
+    _, com = tabela_sparql(g1, consulta)
+
+    # linhas que so existem depois do reasoner, marcadas na tabela da direita para
+    # que a diferenca salte aos olhos quando os dois lados devolvem resultado
+    ja_existiam = {tuple(sorted(l.items())) for l in sem}
+    novas = sum(1 for l in com if tuple(sorted(l.items())) not in ja_existiam)
+
+    with esq:
+        if sem:
+            st.warning(f"**Sem reasoner** — {len(sem)} resultado(s), "
+                       f"faltando {novas}")
+            st.dataframe(sem, width="stretch", hide_index=True,
+                         height=min(400, 40 + 35 * len(sem)))
+        else:
+            st.error("**Sem reasoner** — 0 resultados")
+            st.caption("A base, sozinha, não responde.")
+
+    with dir_:
+        st.success(f"**Com reasoner** — {len(com)} resultado(s), "
+                   f"{novas} vindo(s) da inferência")
+        marcadas = [
+            {**l, "origem": ("no arquivo"
+                             if tuple(sorted(l.items())) in ja_existiam
+                             else "◀ inferido")}
+            for l in com
+        ]
+        st.dataframe(marcadas, width="stretch", hide_index=True,
+                     height=min(400, 40 + 35 * len(marcadas)))
 
     st.divider()
     st.subheader("As 7 construções OWL")
