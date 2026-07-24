@@ -179,7 +179,7 @@ copa:Tecnico owl:disjointWith copa:Arbitro .
 
 
 # ============================================================================
-# T-BOX 3/3 - PROPRIEDADES (12 de objeto + 14 de dados)
+# T-BOX 3/3 - PROPRIEDADES (14 de objeto + 13 de dados)
 # ============================================================================
 
 # Todas declaram rdfs:domain e rdfs:range. Em RDFS esses construtores nao
@@ -188,7 +188,7 @@ copa:Tecnico owl:disjointWith copa:Arbitro .
 # propriedade significariam intersecao de classes, nao uniao.
 
 
-# --- Propriedades de objeto (12) -------------------------------------------
+# --- Propriedades de objeto (14) -------------------------------------------
 
 copa:jogaPor a owl:ObjectProperty ;
     rdfs:label "jogaPor" ;
@@ -302,7 +302,7 @@ copa:enfrentou a owl:ObjectProperty , owl:SymmetricProperty ;
 copa:equipeA owl:propertyDisjointWith copa:equipeB .
 
 
-# --- Propriedades de dados (14) --------------------------------------------
+# --- Propriedades de dados (13) --------------------------------------------
 
 copa:numeroCamisa a owl:DatatypeProperty ,
         owl:FunctionalProperty ;
